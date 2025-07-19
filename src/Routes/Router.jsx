@@ -20,6 +20,7 @@ import AddPublisher from "../components/Dashboard/AddPublisher";
 import PrivateRoute from "../components/PrivateRoute";
 import RoleRoute from "../components/RoleRoute";
 import Unauthorized from "../pages/Unauthorized";
+import UpdateProfile from "../pages/UpdateProfile";
 
 const router = createBrowserRouter([
   {
@@ -57,6 +58,14 @@ const router = createBrowserRouter([
         element: (
           <PrivateRoute>
             <MyProfile />
+          </PrivateRoute>
+        ),
+      },
+      {
+        path: "/update-profile",
+        element: (
+          <PrivateRoute>
+            <UpdateProfile />
           </PrivateRoute>
         ),
       },
