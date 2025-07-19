@@ -1,8 +1,7 @@
-import { createBrowserRouter } from "react-router-dom";
+import { createBrowserRouter, Navigate } from "react-router-dom";
 import Home from "../pages/Home";
 import AllArticles from "../pages/AllArticles";
 import ArticleDetails from "../pages/ArticleDetails";
-import PrivateLayout from "../layouts/PrivateLayout";
 import Subscription from "../pages/Subscription";
 import MyProfile from "../pages/MyProfile";
 import PremiumArticles from "../pages/PremiumArticles";
@@ -19,6 +18,8 @@ import ManageUsers from "../components/Dashboard/ManageUsers";
 import ManageArticles from "../components/Dashboard/ManageArticles";
 import AddPublisher from "../components/Dashboard/AddPublisher";
 import PrivateRoute from "../components/PrivateRoute";
+import RoleRoute from "../components/RoleRoute";
+import Unauthorized from "../pages/Unauthorized";
 
 const router = createBrowserRouter([
   {
@@ -27,7 +28,56 @@ const router = createBrowserRouter([
     children: [
       { index: true, element: <Home /> },
       { path: "/all-articles", element: <AllArticles /> },
-      { path: "/article/:id", element: <ArticleDetails /> },
+      {
+        path: "/article/:id",
+        element: (
+          <PrivateRoute>
+            <ArticleDetails />
+          </PrivateRoute>
+        ),
+      },
+      {
+        path: "/add-article",
+        element: (
+          <PrivateRoute>
+            <AddArticleForm />
+          </PrivateRoute>
+        ),
+      },
+      {
+        path: "/subscription",
+        element: (
+          <PrivateRoute>
+            <Subscription />
+          </PrivateRoute>
+        ),
+      },
+      {
+        path: "/my-profile",
+        element: (
+          <PrivateRoute>
+            <MyProfile />
+          </PrivateRoute>
+        ),
+      },
+      {
+        path: "/premium-articles",
+        element: (
+          <PrivateRoute>
+            <RoleRoute allowedRoles={["premium", "admin"]}>
+              <PremiumArticles />
+            </RoleRoute>
+          </PrivateRoute>
+        ),
+      },
+      {
+        path: "/my-articles",
+        element: (
+          <PrivateRoute>
+            <MyArticles />
+          </PrivateRoute>
+        ),
+      },
       {
         path: "/login",
         element: (
@@ -47,68 +97,34 @@ const router = createBrowserRouter([
     ],
   },
   {
-    path: "/user",
-    element: <PrivateLayout />,
-    children: [
-      {
-        path: "/user/add-article",
-        element: (
-          <PrivateRoute>
-            <AddArticleForm />
-          </PrivateRoute>
-        ),
-      },
-      {
-        path: "/user/subscription",
-        element: (
-          <PrivateRoute>
-            <Subscription />
-          </PrivateRoute>
-        ),
-      },
-      {
-        path: "/user/my-profile",
-        element: (
-          <PrivateRoute>
-            <MyProfile />
-          </PrivateRoute>
-        ),
-      },
-      {
-        path: "/user/premium-articles",
-        element: (
-          <PrivateRoute>
-            <PremiumArticles />
-          </PrivateRoute>
-        ),
-      },
-      {
-        path: "/user/my-articles",
-        element: (
-          <PrivateRoute>
-            <MyArticles />
-          </PrivateRoute>
-        ),
-      },
-    ],
-  },
-  {
     path: "/admin",
-    element: <AdminLayout />,
+    element: (
+      <PrivateRoute>
+        <RoleRoute allowedRoles={["admin"]}>
+          <AdminLayout />
+        </RoleRoute>
+      </PrivateRoute>
+    ),
     children: [
+      { index: true, element: <Navigate to="/admin/dashboard" replace /> },
+
       {
         path: "/admin/dashboard",
         element: (
           <PrivateRoute>
-            <AdminDashboard />
+            <RoleRoute allowedRoles={["admin"]}>
+              <AdminDashboard />
+            </RoleRoute>
           </PrivateRoute>
         ),
       },
       {
-        path: "/admin/mange-users",
+        path: "/admin/manage-users",
         element: (
           <PrivateRoute>
-            <ManageUsers />
+            <RoleRoute allowedRoles={["admin"]}>
+              <ManageUsers />
+            </RoleRoute>
           </PrivateRoute>
         ),
       },
@@ -116,7 +132,9 @@ const router = createBrowserRouter([
         path: "/admin/manage-articles",
         element: (
           <PrivateRoute>
-            <ManageArticles />
+            <RoleRoute allowedRoles={["admin"]}>
+              <ManageArticles />
+            </RoleRoute>
           </PrivateRoute>
         ),
       },
@@ -124,13 +142,16 @@ const router = createBrowserRouter([
         path: "/admin/publisher",
         element: (
           <PrivateRoute>
-            <AddPublisher />{" "}
+            <RoleRoute allowedRoles={["admin"]}>
+              <AddPublisher />
+            </RoleRoute>
           </PrivateRoute>
         ),
       },
     ],
   },
   { path: "*", element: <NotFound /> },
+  { path: "/unauthorized", element: <Unauthorized /> },
 ]);
 
 export default router;

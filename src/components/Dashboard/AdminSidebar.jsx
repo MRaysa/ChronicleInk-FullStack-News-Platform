@@ -26,7 +26,7 @@ const AdminSidebar = () => {
           Manage Articles
         </NavLink>
         <NavLink
-          to="/admin/mange-users"
+          to="/admin/manage-users"
           className={({ isActive }) =>
             `text-sm font-medium ${
               isActive ? "text-blue-600" : "text-gray-600"

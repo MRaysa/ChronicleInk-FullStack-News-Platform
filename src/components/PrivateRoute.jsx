@@ -9,6 +9,6 @@ export default function PrivateRoute({ children }) {
   return user ? (
     children
   ) : (
-    <Navigate state={{ from: location }} to="/auth/login" replace />
+    <Navigate state={{ from: location }} to="/login" replace />
   );
 }

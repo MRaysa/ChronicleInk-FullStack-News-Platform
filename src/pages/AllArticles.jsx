@@ -184,15 +184,15 @@ export default function AllArticles() {
                 </p>
 
                 <button
-                  disabled={article.isPremium && !user.isPremiumTaken}
+                  disabled={article.isPremium && !user?.isPremiumTaken}
                   onClick={() => navigate(`/article/${article._id}`)}
                   className={`w-full py-2 text-sm font-semibold rounded-md transition ${
-                    article.isPremium && !user.isPremiumTaken
+                    article.isPremium && !user?.isPremiumTaken
                       ? "bg-gray-300 text-gray-600 cursor-not-allowed"
                       : "bg-yellow-500 text-white hover:bg-yellow-600"
                   }`}
                 >
-                  {article.isPremium && !user.isPremiumTaken
+                  {article.isPremium && !user?.isPremiumTaken
                     ? "Subscription Required"
                     : "View Details"}
                 </button>
