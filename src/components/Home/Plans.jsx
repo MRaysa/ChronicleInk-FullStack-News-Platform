@@ -569,7 +569,7 @@ const PricingPlans = () => {
                         : "0 10px 25px -5px rgba(59, 130, 246, 0.4)",
                   }}
                   whileTap={{ scale: 0.95 }}
-                  onClick={() => navigate("/user/subscription")}
+                  onClick={() => navigate("/subscription")}
                   className={`w-full ${plan.buttonColor} text-white font-bold py-4 rounded-xl flex items-center justify-center mb-4`}
                 >
                   {plan.id === 1 && billingCycle === "monthly"
