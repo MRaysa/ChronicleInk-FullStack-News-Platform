@@ -3,7 +3,7 @@ import { useQuery } from "@tanstack/react-query";
 import { Chart } from "react-google-charts";
 import axiosInstance from "../../utils/axiosInstance";
 import Spinner from "../Spinner";
-import AdminSidebar from "./AdminSidebar";
+// import AdminSidebar from "./AdminSidebar";
 import { useTheme } from "../../context/ThemeContext";
 import { motion } from "framer-motion";
 
