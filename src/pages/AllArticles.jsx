@@ -191,7 +191,7 @@ export default function AllArticles() {
                 : "text-transparent bg-gradient-to-r from-blue-600 to-indigo-700"
             }`}
           >
-            Knowledge Hub
+            All Article
           </h1>
           <p
             className={`text-lg ${isDark ? "text-gray-400" : "text-gray-600"}`}
