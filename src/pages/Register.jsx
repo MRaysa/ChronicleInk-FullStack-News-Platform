@@ -37,12 +37,13 @@ const Register = () => {
       };
 
       try {
-        await axios.post("http://localhost:3000/web/api/users/register", userData);
+        await axios.post(
+          "https://chronicle-ink-server.vercel.app/web/api/users/register",
+          userData
+        );
       } catch (erorr) {
         toast.error("User saved failed to backend!");
       }
-
-
 
       const firebaseToken = await getIdToken(user);
 
@@ -50,7 +51,7 @@ const Register = () => {
 
       try {
         const jwtRes = await axios.post(
-          "http://localhost:3000/web/api/auth",
+          "https://chronicle-ink-server.vercel.app/web/api/auth",
           {},
           {
             headers: {
@@ -59,7 +60,6 @@ const Register = () => {
           }
         );
         localStorage.setItem("token", jwtRes.data.token);
-        
       } catch (jwtErr) {
         toast.error("Failed to get JWT token from server.");
       }
@@ -170,8 +170,14 @@ const Register = () => {
           </button>
         </form>
 
-        <SocialLogin/>
-        <p>Already you have an account ? <Link to='/login'className="text-blue-600 underline"> Login</Link></p>
+        <SocialLogin />
+        <p>
+          Already you have an account ?{" "}
+          <Link to="/login" className="text-blue-600 underline">
+            {" "}
+            Login
+          </Link>
+        </p>
       </div>
     </div>
   );
