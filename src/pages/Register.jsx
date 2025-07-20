@@ -4,7 +4,7 @@ import { toast } from "react-toastify";
 import { getIdToken, updateProfile } from "firebase/auth";
 import axios from "axios";
 import SocialLogin from "../components/SocialLogin";
-import { Link } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 
 const Register = () => {
   const {
@@ -12,7 +12,8 @@ const Register = () => {
     handleSubmit,
     formState: { errors, isSubmitting },
   } = useForm();
-
+  const navigate = useNavigate();
+  const location = useLocation();
   const { createUser } = useAuth();
 
   const onSubmit = async (data) => {
@@ -35,14 +36,14 @@ const Register = () => {
         image: user.photoURL,
         uid: user.uid,
       };
-
+      // Redirect to home after successful registration
       try {
         await axios.post(
           "https://chronicle-ink-server.vercel.app/web/api/users/register",
           userData
         );
       } catch (erorr) {
-        toast.error("User saved failed to backend!");
+        toast.error("User saved failed to backend!", erorr);
       }
 
       const firebaseToken = await getIdToken(user);
@@ -59,12 +60,15 @@ const Register = () => {
             },
           }
         );
+
         localStorage.setItem("token", jwtRes.data.token);
       } catch (jwtErr) {
         toast.error("Failed to get JWT token from server.");
       }
 
       toast.success("Registration successful!");
+      navigate(location?.state ? location.state : "/");
+      window.location.reload();
     } catch (err) {
       const msg = err?.message || "Registration failed.";
       if (msg.includes("email-already-in-use")) {

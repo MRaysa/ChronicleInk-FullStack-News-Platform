@@ -98,13 +98,13 @@ const Navbar = () => {
       ? "bg-gray-700 hover:bg-gray-600"
       : "bg-blue-50 hover:bg-blue-100";
   const mobileMenuBg = theme === "dark" ? "bg-gray-800" : "bg-white";
-  const searchBg = theme === "dark" ? "bg-gray-700" : "bg-gray-100";
+  // const searchBg = theme === "dark" ? "bg-gray-700" : "bg-gray-100";
 
-  const handleSearch = (e) => {
-    e.preventDefault();
-    // Implement search functionality
-    console.log("Searching for:", searchQuery);
-  };
+  // const handleSearch = (e) => {
+  //   e.preventDefault();
+  //   // Implement search functionality
+  //   console.log("Searching for:", searchQuery);
+  // };
 
   return (
     <motion.nav
@@ -185,7 +185,7 @@ const Navbar = () => {
         {/* Right Side Controls */}
         <div className="hidden md:flex items-center gap-4">
           {/* Search Button */}
-          <motion.button
+          {/* <motion.button
             whileHover={{ scale: 1.1 }}
             whileTap={{ scale: 0.9 }}
             onClick={() => setSearchOpen(!searchOpen)}
@@ -193,7 +193,7 @@ const Navbar = () => {
             aria-label="Search"
           >
             <FaSearch className="text-lg" />
-          </motion.button>
+          </motion.button> */}
 
           {/* Notification Bell */}
           {user && (
@@ -320,7 +320,7 @@ const Navbar = () => {
       </div>
 
       {/* Search Bar */}
-      <AnimatePresence>
+      {/* <AnimatePresence>
         {searchOpen && (
           <motion.div
             initial={{ opacity: 0, height: 0 }}
@@ -350,7 +350,7 @@ const Navbar = () => {
             </form>
           </motion.div>
         )}
-      </AnimatePresence>
+      </AnimatePresence> */}
 
       {/* Mobile Menu */}
       <AnimatePresence>

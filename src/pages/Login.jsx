@@ -4,7 +4,7 @@ import useAuth from "../hook/useAuth";
 import { getIdToken } from "firebase/auth";
 import axios from "axios";
 import SocialLogin from "../components/SocialLogin";
-import { Link } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import axiosInstance from "../utils/axiosInstance";
 
 const Login = () => {
@@ -13,7 +13,8 @@ const Login = () => {
     handleSubmit,
     formState: { errors, isSubmitting },
   } = useForm();
-
+  const navigate = useNavigate();
+  const location = useLocation();
   const { signInUser } = useAuth();
 
   const onSubmit = async (data) => {
@@ -36,6 +37,7 @@ const Login = () => {
             },
           }
         );
+        // Redirect to home after successful login
         localStorage.setItem("token", jwtRes.data.token);
       } catch (jwtErr) {
         toast.error("Failed to get JWT token from server.");
@@ -44,6 +46,8 @@ const Login = () => {
       await axiosInstance.patch(`/users/${user.uid}/last-login`);
 
       toast.success("Login successful!");
+      navigate(location?.state ? location.state : "/");
+      window.location.reload();
     } catch (error) {
       toast.error("Invalid email or password.");
     }
