@@ -1,9 +1,10 @@
-import { useState } from "react";
+import React, { useState } from "react";
 import axios from "axios";
 import axiosInstance from "../../utils/axiosInstance";
 import { toast } from "react-toastify";
 import useAuth from "../../hook/useAuth";
 import { useTheme } from "../../context/ThemeContext";
+import { motion } from "framer-motion";
 
 const AddPublisher = () => {
   const [publisherName, setPublisherName] = useState("");
@@ -12,6 +13,27 @@ const AddPublisher = () => {
   const [loading, setLoading] = useState(false);
   const { user } = useAuth();
   const { theme } = useTheme();
+
+  const themeStyles = {
+    light: {
+      bg: "bg-gray-50",
+      card: "bg-white",
+      text: "text-gray-800",
+      input: "bg-white border-gray-300",
+      button: "bg-indigo-600 hover:bg-indigo-700",
+      upload: "border-gray-300 hover:border-indigo-500",
+    },
+    dark: {
+      bg: "bg-gray-900",
+      card: "bg-gray-800",
+      text: "text-gray-100",
+      input: "bg-gray-700 border-gray-600",
+      button: "bg-indigo-500 hover:bg-indigo-600",
+      upload: "border-gray-600 hover:border-indigo-500",
+    },
+  };
+
+  const currentTheme = themeStyles[theme] || themeStyles.light;
 
   const handleFileChange = (e) => {
     const file = e.target.files[0];
@@ -70,30 +92,13 @@ const AddPublisher = () => {
     }
   };
 
-  const themeStyles = {
-    light: {
-      bg: "bg-gray-50",
-      card: "bg-white",
-      text: "text-gray-800",
-      input: "bg-white border-gray-300",
-      button: "bg-indigo-600 hover:bg-indigo-700",
-    },
-    dark: {
-      bg: "bg-gray-900",
-      card: "bg-gray-800",
-      text: "text-gray-100",
-      input: "bg-gray-700 border-gray-600",
-      button: "bg-indigo-500 hover:bg-indigo-600",
-    },
-  };
-
-  const currentTheme = themeStyles[theme];
-
   return (
     <div
       className={`min-h-screen ${currentTheme.bg} py-12 px-4 sm:px-6 lg:px-8`}
     >
-      <div
+      <motion.div
+        initial={{ opacity: 0, y: -20 }}
+        animate={{ opacity: 1, y: 0 }}
         className={`max-w-3xl mx-auto ${currentTheme.card} rounded-xl shadow-lg overflow-hidden ${currentTheme.text}`}
       >
         <div className="p-6 sm:p-8">
@@ -129,8 +134,8 @@ const AddPublisher = () => {
                 <div className="flex items-center justify-center w-full">
                   <label
                     className={`flex flex-col items-center justify-center w-full h-32 border-2 border-dashed rounded-lg cursor-pointer ${
-                      previewImage ? "border-transparent" : currentTheme.input
-                    } hover:border-indigo-500 transition-colors`}
+                      previewImage ? "border-transparent" : currentTheme.upload
+                    } transition-colors`}
                   >
                     {previewImage ? (
                       <img
@@ -222,7 +227,7 @@ const AddPublisher = () => {
             platform.
           </p>
         </div>
-      </div>
+      </motion.div>
     </div>
   );
 };

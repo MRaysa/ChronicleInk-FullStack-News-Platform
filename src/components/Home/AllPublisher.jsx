@@ -1,24 +1,13 @@
 import { useQuery } from "@tanstack/react-query";
 import axiosInstance from "../../utils/axiosInstance";
 import { useTheme } from "../../context/ThemeContext";
-import { useGSAP } from "@gsap/react";
-import gsap from "gsap";
-import { ScrollTrigger } from "gsap/ScrollTrigger";
-import { useRef } from "react";
-
-// Register GSAP plugins
-gsap.registerPlugin(ScrollTrigger);
+import { motion } from "framer-motion";
+import { FaNewspaper, FaGlobe, FaRegStar, FaStar } from "react-icons/fa";
+import Spinner from "../Spinner";
 
 const AllPublishers = () => {
   const { theme } = useTheme();
-  const containerRef = useRef(null);
-  const titleRef = useRef(null);
-
-  const {
-    data: publishers = [],
-    isLoading,
-    isError,
-  } = useQuery({
+  const { data: publishers = [], isLoading } = useQuery({
     queryKey: ["publishers"],
     queryFn: async () => {
       const { data } = await axiosInstance.get("/publishers");
@@ -26,173 +15,143 @@ const AllPublishers = () => {
     },
   });
 
-  useGSAP(() => {
-    if (!containerRef.current || !titleRef.current) return;
+  const themeStyles = {
+    light: {
+      bg: "bg-gray-50",
+      card: "bg-white",
+      text: "text-gray-800",
+      border: "border-gray-200",
+      hover: "hover:bg-gray-100",
+      heading: "text-blue-700",
+      shadow: "shadow-md hover:shadow-lg",
+    },
+    dark: {
+      bg: "bg-gray-900",
+      card: "bg-gray-800",
+      text: "text-gray-100",
+      border: "border-gray-700",
+      hover: "hover:bg-gray-700",
+      heading: "text-blue-400",
+      shadow: "shadow-lg hover:shadow-xl",
+    },
+  };
 
-    // Title animation
-    gsap.from(titleRef.current, {
-      y: 50,
-      opacity: 0,
-      duration: 0.8,
-      ease: "power3.out",
-    });
+  const currentTheme = themeStyles[theme] || themeStyles.light;
 
-    // Grid items animation
-    gsap.from(".publisher-card", {
-      opacity: 0,
-      y: 30,
-      stagger: 0.1,
-      duration: 0.6,
-      ease: "back.out(1.2)",
-      scrollTrigger: {
-        trigger: containerRef.current,
-        start: "top 80%",
-        toggleActions: "play none none none",
-      },
-    });
-
-    // Hover animations
-    const cards = document.querySelectorAll(".publisher-card");
-
-    cards.forEach((card) => {
-      // Set initial perspective
-      gsap.set(card, { transformPerspective: 1000 });
-
-      // Hover in animation
-      card.addEventListener("mouseenter", () => {
-        gsap.to(card, {
-          y: -8,
-          scale: 1.03,
-          duration: 0.3,
-          ease: "power2.out",
-          boxShadow:
-            theme === "dark"
-              ? "0 10px 25px -5px rgba(59, 130, 246, 0.3)"
-              : "0 10px 25px -5px rgba(0, 0, 0, 0.1)",
-          zIndex: 10,
-        });
-      });
-
-      // Hover out animation
-      card.addEventListener("mouseleave", () => {
-        gsap.to(card, {
-          y: 0,
-          scale: 1,
-          duration: 0.3,
-          ease: "power2.out",
-          boxShadow: "0 4px 6px -1px rgba(0, 0, 0, 0.1)",
-          zIndex: 1,
-        });
-      });
-    });
-
-    return () => {
-      cards.forEach((card) => {
-        card.removeEventListener("mouseenter", () => {});
-        card.removeEventListener("mouseleave", () => {});
-      });
-      ScrollTrigger.getAll().forEach((trigger) => trigger.kill());
-    };
-  }, [theme, publishers]);
-
-  if (isLoading) {
-    return (
-      <section className="max-w-7xl mx-auto py-8 px-4">
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-6">
-          {[...Array(10)].map((_, i) => (
-            <div
-              key={i}
-              className="h-40 p-4 rounded-lg bg-gray-100 dark:bg-gray-800 animate-pulse"
-            />
-          ))}
-        </div>
-      </section>
-    );
-  }
-
-  if (isError) {
-    return (
-      <section className="max-w-7xl mx-auto py-12 px-4 text-center">
-        <div className="bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-300 p-6 rounded-lg inline-block">
-          <h3 className="text-xl font-medium mb-2">
-            Failed to load publishers
-          </h3>
-          <p>Please try again later</p>
-          <button
-            onClick={() => window.location.reload()}
-            className="mt-3 px-4 py-2 bg-red-100 dark:bg-red-900/30 rounded-md text-red-700 dark:text-red-200 hover:bg-red-200 dark:hover:bg-red-900/40 transition"
-          >
-            Retry
-          </button>
-        </div>
-      </section>
-    );
-  }
+  if (isLoading) return <Spinner />;
 
   return (
-    <section
-      ref={containerRef}
-      className="max-w-7xl mx-auto py-12 px-4 sm:px-6 lg:px-8"
-    >
-      <h2
-        ref={titleRef}
-        className="text-3xl md:text-4xl font-bold mb-12 text-center"
-      >
-        <span className="bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-purple-600">
-          Our Trusted Publishers
-        </span>
-        <div className="w-24 h-1 mx-auto mt-4 bg-gradient-to-r from-blue-500 to-purple-500 rounded-full" />
-      </h2>
-
-      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-6">
-        {publishers.map((pub) => (
-          <div
-            key={pub._id}
-            className="publisher-card group flex flex-col items-center bg-white dark:bg-gray-800 p-4 rounded-xl shadow-md hover:shadow-xl transition-all duration-300 border border-gray-100 dark:border-gray-700 relative overflow-hidden"
-          >
-            <div className="relative w-full aspect-square mb-4 overflow-hidden rounded-lg bg-gray-100 dark:bg-gray-700 flex items-center justify-center p-2">
-              <img
-                src={
-                  pub.logo || "https://via.placeholder.com/150?text=Publisher"
-                }
-                alt={pub.name}
-                className="h-full w-auto object-contain transition-transform duration-300 group-hover:scale-105"
-                onError={(e) => {
-                  e.currentTarget.src =
-                    "https://via.placeholder.com/150?text=Publisher";
-                }}
-              />
-              <div className="absolute inset-0 bg-gradient-to-t from-black/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+    <section className={`min-h-screen py-8 px-4 sm:px-6 ${currentTheme.bg}`}>
+      <div className="max-w-7xl mx-auto">
+        <motion.div
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-8 gap-4"
+        >
+          <div className="flex items-center gap-3">
+            <div
+              className={`p-3 rounded-lg ${
+                theme === "dark" ? "bg-blue-900" : "bg-blue-100"
+              }`}
+            >
+              <FaNewspaper className={`text-2xl ${currentTheme.heading}`} />
             </div>
+            <h2
+              className={`text-2xl md:text-3xl font-bold ${currentTheme.heading}`}
+            >
+              All Publishers
+            </h2>
+          </div>
+          <div
+            className={`px-4 py-2 rounded-full ${
+              theme === "dark" ? "bg-gray-700" : "bg-gray-200"
+            } text-sm`}
+          >
+            {publishers.length} Publishers
+          </div>
+        </motion.div>
 
-            <div className="text-center w-full">
-              <p className="font-semibold text-gray-800 dark:text-gray-200 truncate">
-                {pub.name}
-              </p>
-              <div className="flex justify-between items-center mt-2 text-xs text-gray-500 dark:text-gray-400">
-                <span>{new Date(pub.createdAt).toLocaleDateString()}</span>
-                {pub.author && pub.author.name && (
-                  <span className="truncate max-w-[80px]">
-                    by {pub.author.name}
-                  </span>
+        <div className="grid grid-cols-1 xs:grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 sm:gap-6">
+          {publishers.map((pub, index) => (
+            <motion.div
+              key={pub.id}
+              initial={{ opacity: 0, scale: 0.9 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ delay: index * 0.05 }}
+              whileHover={{ y: -5 }}
+              className={`flex flex-col items-center p-4 rounded-xl ${currentTheme.card} ${currentTheme.shadow} ${currentTheme.border} transition-all`}
+            >
+              <div className="relative mb-4">
+                <div
+                  className={`w-20 h-20 rounded-full ${
+                    theme === "dark" ? "bg-gray-700" : "bg-gray-100"
+                  } flex items-center justify-center mb-2 overflow-hidden`}
+                >
+                  {pub.logo ? (
+                    <img
+                      src={pub.logo}
+                      alt={pub.name}
+                      className="h-16 w-16 object-contain"
+                      onError={(e) => {
+                        e.target.onerror = null;
+                        e.target.src = "https://via.placeholder.com/80";
+                      }}
+                    />
+                  ) : (
+                    <FaGlobe className="text-3xl text-gray-400" />
+                  )}
+                </div>
+                {pub.isPremium && (
+                  <div className="absolute -top-2 -right-2 bg-yellow-400 text-yellow-800 p-1 rounded-full">
+                    <FaStar className="text-xs" />
+                  </div>
                 )}
               </div>
-            </div>
-          </div>
-        ))}
-      </div>
 
-      {publishers.length === 0 && (
-        <div className="text-center py-12">
-          <div className="text-5xl mb-4">📭</div>
-          <h3 className="text-xl font-medium text-gray-600 dark:text-gray-300">
-            No publishers available
-          </h3>
-          <p className="text-gray-500 dark:text-gray-400 mt-2">
-            Check back later for updates
-          </p>
+              <h3 className={`font-bold text-center mb-1 ${currentTheme.text}`}>
+                {pub.name}
+              </h3>
+
+              <div className="mt-3 w-full">
+                <div
+                  className={`h-1 rounded-full ${
+                    theme === "dark" ? "bg-gray-700" : "bg-gray-200"
+                  } overflow-hidden`}
+                >
+                  <div
+                    className="h-full bg-blue-500"
+                    style={{
+                      width: `${Math.min((pub.articleCount || 0) * 10, 100)}%`,
+                    }}
+                  ></div>
+                </div>
+              </div>
+            </motion.div>
+          ))}
         </div>
-      )}
+
+        {publishers.length === 0 && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            className={`rounded-xl p-8 text-center ${currentTheme.card} ${currentTheme.border}`}
+          >
+            <FaNewspaper
+              className={`mx-auto text-4xl mb-4 ${currentTheme.heading}`}
+            />
+            <h3 className={`text-xl font-medium mb-2 ${currentTheme.text}`}>
+              No Publishers Found
+            </h3>
+            <p
+              className={`${
+                theme === "dark" ? "text-gray-400" : "text-gray-600"
+              }`}
+            >
+              There are currently no publishers available.
+            </p>
+          </motion.div>
+        )}
+      </div>
     </section>
   );
 };
