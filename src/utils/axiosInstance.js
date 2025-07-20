@@ -1,7 +1,9 @@
 import axios from "axios";
 
 const axiosInstance = axios.create({
-  baseURL: "http://localhost:3000/web/api",
+  baseURL: import.meta.env.DEV
+    ? "http://localhost:3000/web/api"
+    : "https://chronicle-ink-server.vercel.app/web/api",
 });
 
 axiosInstance.interceptors.request.use(
