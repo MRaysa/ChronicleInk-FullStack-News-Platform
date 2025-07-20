@@ -164,7 +164,9 @@ export default function AllArticlesPage() {
                   }`}
                 >
                   <td className="p-3">{index + 1}</td>
-                  <td className="p-3 max-w-xs truncate">{article.title}</td>
+                  <td className="p-3 max-w-xs truncate-4-chars">
+                    {article.title}
+                  </td>
                   <td className="p-3">
                     <div className="flex items-center">
                       <img

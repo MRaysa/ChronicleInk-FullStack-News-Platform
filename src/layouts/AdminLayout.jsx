@@ -83,10 +83,12 @@ const AdminLayout = () => {
     open: { x: 0 },
     closed: { x: "-100%" },
   };
-
+  // className={`flex h-screen ${
+  //         theme === "dark" ? "dark bg-gray-900" : "bg-gray-50"
+  //         }`
   return (
     <div
-      className={`flex h-screen ${
+      className={`flex h-screen  min-h-screen bg-gray-100  font-inter rounded-lg ${
         theme === "dark" ? "dark bg-gray-900" : "bg-gray-50"
       }`}
     >
@@ -101,7 +103,6 @@ const AdminLayout = () => {
       >
         {mobileSidebarOpen ? <FaTimes /> : <FaBars />}
       </button>
-
       {/* Mobile Sidebar Overlay */}
       {mobileSidebarOpen && (
         <div
@@ -109,7 +110,6 @@ const AdminLayout = () => {
           onClick={() => setMobileSidebarOpen(false)}
         />
       )}
-
       {/* Animated Sidebar - Desktop */}
       <motion.div
         initial="open"
@@ -280,7 +280,6 @@ const AdminLayout = () => {
           </Link>
         </div>
       </motion.div>
-
       {/* Mobile Sidebar */}
       <motion.div
         initial="closed"
@@ -434,9 +433,9 @@ const AdminLayout = () => {
           </Link>
         </div>
       </motion.div>
-
+      {/* className="flex-1 overflow-auto md:ml-20 */}
       {/* Main content area */}
-      <main className="flex-1 overflow-auto md:ml-20 lg:ml-80">
+      <main className="flex-1 h-screen  flex flex-col">
         {/* Header */}
         <header
           className={`sticky top-0 z-10 p-4 shadow-sm ${
@@ -463,7 +462,7 @@ const AdminLayout = () => {
         </header>
 
         {/* Content */}
-        <div className="p-6">
+        <div className="p-6 flex-1  overflow-auto h-min-screen ">
           <AnimatePresence mode="wait">
             <motion.div
               key={location.pathname}

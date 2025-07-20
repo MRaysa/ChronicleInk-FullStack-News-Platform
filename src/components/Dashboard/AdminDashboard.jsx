@@ -43,7 +43,7 @@ export default function DashboardOverview() {
   if (isLoading) return <Spinner />;
 
   return (
-    <div className={`flex h-screen ${currentTheme.bg}`}>
+    <div className={`flex  ${currentTheme.bg}`}>
       {/* Main Content */}
       <div className="flex-1 overflow-auto">
         {/* Header */}
