@@ -70,7 +70,7 @@ export default function PremiumArticles() {
 
               <button
                 onClick={() =>
-                  (window.location.href = `/articles/${article._id}`)
+                  (window.location.href = `/article/${article._id}`)
                 }
                 className="w-full py-2 rounded-md font-medium bg-yellow-500 text-white hover:bg-yellow-600 transition"
               >

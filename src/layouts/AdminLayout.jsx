@@ -65,11 +65,13 @@ const AdminLayout = () => {
   const handleSignOut = async () => {
     try {
       setIsSigningOut(true);
-      await logout();
+      await logout(); // Using the logout function from useAuth
       navigate("/");
       setSidebarOpen(false);
+      setMobileSidebarOpen(false); // Close mobile sidebar if open
     } catch (error) {
       console.error("Sign out error:", error);
+    } finally {
       setIsSigningOut(false);
     }
   };
