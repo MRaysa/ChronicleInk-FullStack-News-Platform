@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "react-toastify";
 import { motion } from "framer-motion";
@@ -7,8 +8,48 @@ import axios from "axios";
 import SocialLogin from "../components/SocialLogin";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import axiosInstance from "../utils/axiosInstance";
+import { useTheme } from "../context/ThemeContext";
+
+// Feather Icons as React components
+const EyeIcon = ({ className }) => (
+  <svg
+    xmlns="http://www.w3.org/2000/svg"
+    width="24"
+    height="24"
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+    className={className}
+  >
+    <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+    <circle cx="12" cy="12" r="3"></circle>
+  </svg>
+);
+
+const EyeOffIcon = ({ className }) => (
+  <svg
+    xmlns="http://www.w3.org/2000/svg"
+    width="24"
+    height="24"
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+    className={className}
+  >
+    <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path>
+    <line x1="1" y1="1" x2="23" y2="23"></line>
+  </svg>
+);
 
 const Login = () => {
+  const { theme } = useTheme();
+  const [showPassword, setShowPassword] = useState(false);
   const {
     register,
     handleSubmit,
@@ -17,6 +58,36 @@ const Login = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const { signInUser } = useAuth();
+
+  // Theme-based colors
+  const themeColors = {
+    light: {
+      bg: "from-indigo-100 to-blue-200",
+      card: "bg-white",
+      text: "text-gray-800",
+      input: "bg-gray-50 border-gray-300 focus:ring-indigo-400",
+      button:
+        "from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700",
+      link: "text-indigo-600 hover:text-indigo-500",
+      divider: "border-gray-300",
+      socialText: "text-gray-600",
+      icon: "text-gray-500",
+    },
+    dark: {
+      bg: "from-gray-800 to-gray-900",
+      card: "bg-gray-700/90",
+      text: "text-gray-100",
+      input: "bg-gray-600 border-gray-500 focus:ring-purple-400",
+      button:
+        "from-purple-700 to-indigo-700 hover:from-purple-800 hover:to-indigo-800",
+      link: "text-purple-400 hover:text-purple-300",
+      divider: "border-gray-600",
+      socialText: "text-gray-300",
+      icon: "text-gray-400",
+    },
+  };
+
+  const currentTheme = themeColors[theme];
 
   const onSubmit = async (data) => {
     try {
@@ -52,22 +123,34 @@ const Login = () => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-indigo-500 via-purple-500 to-pink-500 px-4 py-12">
+    <div
+      className={`min-h-screen flex items-center justify-center bg-gradient-to-br ${currentTheme.bg} px-4 py-12`}
+    >
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5 }}
-        className="bg-white/90 backdrop-blur-lg p-8 rounded-2xl shadow-2xl w-full max-w-md border border-white/20"
+        className={`${
+          currentTheme.card
+        } p-8 rounded-2xl shadow-xl w-full max-w-md backdrop-blur-sm border ${
+          theme === "dark" ? "border-gray-600/30" : "border-gray-200"
+        }`}
       >
         <div className="text-center mb-8">
           <motion.div
             whileHover={{ scale: 1.05 }}
             className="inline-block mb-4"
           >
-            <div className="w-16 h-16 bg-indigo-100 rounded-full flex items-center justify-center mx-auto">
+            <div
+              className={`w-16 h-16 ${
+                theme === "dark" ? "bg-gray-600" : "bg-indigo-100"
+              } rounded-full flex items-center justify-center mx-auto`}
+            >
               <svg
                 xmlns="http://www.w3.org/2000/svg"
-                className="h-8 w-8 text-indigo-600"
+                className={`h-8 w-8 ${
+                  theme === "dark" ? "text-purple-400" : "text-indigo-600"
+                }`}
                 fill="none"
                 viewBox="0 0 24 24"
                 stroke="currentColor"
@@ -81,15 +164,19 @@ const Login = () => {
               </svg>
             </div>
           </motion.div>
-          <h2 className="text-3xl font-bold text-gray-800 mb-2">
+          <h2 className={`text-3xl font-bold ${currentTheme.text} mb-2`}>
             Welcome Back
           </h2>
-          <p className="text-gray-600">Sign in to access your account</p>
+          <p className={theme === "dark" ? "text-gray-400" : "text-gray-600"}>
+            Sign in to access your account
+          </p>
         </div>
 
         <form onSubmit={handleSubmit(onSubmit)} noValidate>
           <div className="mb-6">
-            <label className="block text-sm font-medium text-gray-700 mb-1">
+            <label
+              className={`block text-sm font-medium ${currentTheme.text} mb-1`}
+            >
               Email Address
             </label>
             <motion.div whileHover={{ scale: 1.01 }}>
@@ -104,17 +191,21 @@ const Login = () => {
                   },
                 })}
                 className={`w-full px-4 py-3 rounded-lg border ${
+                  currentTheme.input
+                } focus:outline-none focus:ring-2 transition ${
                   errors.email
-                    ? "border-red-400 focus:ring-red-300"
-                    : "border-gray-300 focus:ring-indigo-300"
-                } focus:outline-none focus:ring-2 transition`}
+                    ? theme === "dark"
+                      ? "border-red-500 focus:ring-red-400"
+                      : "border-red-400 focus:ring-red-300"
+                    : ""
+                }`}
               />
             </motion.div>
             {errors.email && (
               <motion.p
                 initial={{ opacity: 0, y: -10 }}
                 animate={{ opacity: 1, y: 0 }}
-                className="mt-1 text-sm text-red-600"
+                className="mt-1 text-sm text-red-500"
               >
                 {errors.email.message}
               </motion.p>
@@ -123,35 +214,53 @@ const Login = () => {
 
           <div className="mb-6">
             <div className="flex justify-between items-center mb-1">
-              <label className="block text-sm font-medium text-gray-700">
+              <label
+                className={`block text-sm font-medium ${currentTheme.text}`}
+              >
                 Password
               </label>
               <Link
                 to="/forgot-password"
-                className="text-sm text-indigo-600 hover:text-indigo-500"
+                className={`text-sm ${currentTheme.link}`}
               >
                 Forgot password?
               </Link>
             </div>
-            <motion.div whileHover={{ scale: 1.01 }}>
+            <motion.div whileHover={{ scale: 1.01 }} className="relative">
               <input
-                type="password"
+                type={showPassword ? "text" : "password"}
                 placeholder="••••••••"
                 {...register("password", {
                   required: "Password is required",
                 })}
                 className={`w-full px-4 py-3 rounded-lg border ${
+                  currentTheme.input
+                } focus:outline-none focus:ring-2 transition ${
                   errors.password
-                    ? "border-red-400 focus:ring-red-300"
-                    : "border-gray-300 focus:ring-indigo-300"
-                } focus:outline-none focus:ring-2 transition`}
+                    ? theme === "dark"
+                      ? "border-red-500 focus:ring-red-400"
+                      : "border-red-400 focus:ring-red-300"
+                    : ""
+                }`}
               />
+              <button
+                type="button"
+                className="absolute right-3 top-1/2 transform -translate-y-1/2"
+                onClick={() => setShowPassword(!showPassword)}
+                aria-label={showPassword ? "Hide password" : "Show password"}
+              >
+                {showPassword ? (
+                  <EyeOffIcon className={`w-5 h-5 ${currentTheme.icon}`} />
+                ) : (
+                  <EyeIcon className={`w-5 h-5 ${currentTheme.icon}`} />
+                )}
+              </button>
             </motion.div>
             {errors.password && (
               <motion.p
                 initial={{ opacity: 0, y: -10 }}
                 animate={{ opacity: 1, y: 0 }}
-                className="mt-1 text-sm text-red-600"
+                className="mt-1 text-sm text-red-500"
               >
                 {errors.password.message}
               </motion.p>
@@ -165,8 +274,9 @@ const Login = () => {
             whileHover={{ scale: 1.02 }}
             className={`w-full py-3 px-4 rounded-lg font-semibold text-white shadow-md transition ${
               isSubmitting
-                ? "bg-indigo-400 cursor-not-allowed"
-                : "bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700"
+                ? (theme === "dark" ? "bg-indigo-500" : "bg-indigo-400") +
+                  " cursor-not-allowed"
+                : `bg-gradient-to-r ${currentTheme.button}`
             }`}
           >
             {isSubmitting ? (
@@ -201,24 +311,25 @@ const Login = () => {
 
         <div className="relative my-8">
           <div className="absolute inset-0 flex items-center">
-            <div className="w-full border-t border-gray-300"></div>
+            <div className={`w-full border-t ${currentTheme.divider}`}></div>
           </div>
           <div className="relative flex justify-center text-sm">
-            <span className="px-2 bg-white text-gray-500">
+            <span
+              className={`px-2 ${
+                theme === "dark" ? "bg-gray-700/90" : "bg-white"
+              } ${currentTheme.socialText}`}
+            >
               Or continue with
             </span>
           </div>
         </div>
 
-        <SocialLogin />
+        <SocialLogin theme={theme} />
 
         <div className="mt-6 text-center">
-          <p className="text-gray-600">
+          <p className={currentTheme.socialText}>
             Don't have an account?{" "}
-            <Link
-              to="/register"
-              className="font-medium text-indigo-600 hover:text-indigo-500"
-            >
+            <Link to="/register" className={`font-medium ${currentTheme.link}`}>
               Sign up
             </Link>
           </p>
