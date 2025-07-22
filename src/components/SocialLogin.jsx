@@ -1,10 +1,30 @@
+import { useTheme } from "../context/ThemeContext";
 import { GoogleAuthProvider, signInWithPopup } from "firebase/auth";
 import axios from "axios";
 import { toast } from "react-toastify";
 import auth from "../config/firebase";
 import axiosInstance from "../utils/axiosInstance";
+import { motion } from "framer-motion";
 
 export default function SocialLogin() {
+  const { theme } = useTheme();
+
+  // Theme-based styles
+  const buttonStyles = {
+    light: {
+      background: "bg-white hover:bg-gray-50",
+      border: "border-gray-300",
+      text: "text-gray-700",
+    },
+    dark: {
+      background: "bg-gray-700 hover:bg-gray-600",
+      border: "border-gray-600",
+      text: "text-gray-200",
+    },
+  };
+
+  const currentTheme = buttonStyles[theme];
+
   const handleGoogleLogin = async () => {
     const provider = new GoogleAuthProvider();
 
@@ -19,8 +39,6 @@ export default function SocialLogin() {
       );
 
       const userExists = res.data.exists;
-
-      console.log(userExists);
 
       if (!userExists) {
         const userInfo = {
@@ -50,23 +68,25 @@ export default function SocialLogin() {
       toast.success("Successfully logged in");
       window.location.reload();
     } catch (error) {
-      toast.error("login failed");
+      toast.error("Login failed");
     }
   };
 
   return (
     <div className="text-center w-full mt-5">
-      <button
+      <motion.button
         onClick={handleGoogleLogin}
-        className="flex items-center justify-center gap-2 w-full  py-2 px-4 border border-gray-300 rounded-lg hover:bg-gray-100  transition-colors"
+        whileHover={{ scale: 1.02 }}
+        whileTap={{ scale: 0.98 }}
+        className={`flex items-center justify-center gap-2 w-full py-3 px-4 rounded-lg ${currentTheme.background} ${currentTheme.border} ${currentTheme.text} font-medium transition-colors shadow-sm`}
       >
         <img
           src="http://www.svgrepo.com/show/475656/google-color.svg"
           alt="Google"
           className="w-5 h-5"
         />
-        <span className="text-gray-700 font-medium ">Continue with Google</span>
-      </button>
+        <span>Continue with Google</span>
+      </motion.button>
     </div>
   );
 }
