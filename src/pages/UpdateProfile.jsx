@@ -4,6 +4,9 @@ import useAuth from "../hook/useAuth";
 import { useTheme } from "../context/ThemeContext";
 import { motion } from "framer-motion";
 import { fadeIn } from "../utils/motion";
+import { ToastContainer, toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
+import axios from "axios";
 import {
   FaUserEdit,
   FaCheck,
@@ -60,17 +63,42 @@ const UpdateProfile = () => {
     setSuccess("");
 
     try {
-      const formData = new FormData();
-      formData.append("name", data.name);
+      let imageUrl = user?.image || "";
+
       if (selectedImage) {
+        const formData = new FormData();
         formData.append("image", selectedImage);
+        const imgbbKey = import.meta.env.VITE_IMGB_API_KEY;
+        const uploadRes = await axios.post(
+          `https://api.imgbb.com/1/upload?key=${imgbbKey}`,
+          formData
+        );
+        imageUrl = uploadRes.data.data.display_url;
       }
 
-      await updateUserProfile(formData);
-      setSuccess("Profile updated successfully!");
+      await updateUserProfile(data.name, imageUrl);
+
+      const updatedData = { name: data.name, image: imageUrl };
+      await axios.patch("/users/update", updatedData, {
+        headers: {
+          Authorization: `Bearer ${user?.accessToken}`,
+        },
+      });
+
+      // Success Toast
+      toast.success("Profile updated successfully!", {
+        position: "top-right",
+        autoClose: 3000,
+      });
+
       setIsEditing(false);
+      setSelectedImage(null);
     } catch (err) {
-      setError(err.message || "Failed to update profile");
+      // Error Toast
+      toast.error(err.response?.data?.message || "Failed to update profile", {
+        position: "top-right",
+        autoClose: 3000,
+      });
     } finally {
       setLoading(false);
     }
@@ -91,9 +119,9 @@ const UpdateProfile = () => {
       variants={fadeIn("up", "spring", 0.2, 1)}
       initial="hidden"
       animate="show"
-      className="max-w-2xl mx-auto m-4"
+      className="max-w-2xl mx-auto p-4"
     >
-      <div className={`rounded-2xl shadow-xl p-6  ${bgColor} ${textColor}`}>
+      <div className={`rounded-2xl shadow-xl p-6 ${bgColor} ${textColor}`}>
         <div className="flex justify-between items-center mb-8">
           <h2 className="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-purple-500 to-blue-600">
             My Profile
@@ -107,7 +135,11 @@ const UpdateProfile = () => {
             </button>
           ) : (
             <button
-              onClick={() => setIsEditing(false)}
+              onClick={() => {
+                setIsEditing(false);
+                setSelectedImage(null);
+                setImagePreview(user?.image || "");
+              }}
               className="flex items-center gap-2 px-4 py-2 rounded-full bg-gray-500 hover:bg-gray-600 text-white shadow-lg hover:shadow-xl transition-all"
             >
               <FaTimes /> Cancel
@@ -201,6 +233,10 @@ const UpdateProfile = () => {
                       minLength: {
                         value: 2,
                         message: "Name must be at least 2 characters",
+                      },
+                      maxLength: {
+                        value: 30,
+                        message: "Name must be less than 30 characters",
                       },
                     })}
                     className={`w-full p-4 rounded-xl border ${borderColor} ${inputBg} focus:outline-none focus:ring-2 focus:ring-purple-500 shadow-sm`}

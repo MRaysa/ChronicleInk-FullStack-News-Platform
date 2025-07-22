@@ -3,6 +3,7 @@ import {
   onAuthStateChanged,
   signInWithEmailAndPassword,
   signOut,
+  updateProfile,
 } from "firebase/auth";
 import { createContext, useEffect, useState } from "react";
 import auth from "../config/firebase";
@@ -36,6 +37,13 @@ export default function AuthContextProvider({ children }) {
     }
   };
 
+  const updateUserProfile = async (name, image) => {
+    await updateProfile(auth.currentUser, {
+      displayName: name,
+      photoURL: image,
+    });
+  };
+
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
       if (currentUser) {
@@ -48,7 +56,17 @@ export default function AuthContextProvider({ children }) {
         } = currentUser;
 
         try {
-          
+          const waitForJWT = async () => {
+            const maxTries = 20;
+            let tries = 0;
+            while (!localStorage.getItem("token") && tries < maxTries) {
+              await new Promise((res) => setTimeout(res, 100)); // 100ms wait
+              tries++;
+            }
+          };
+
+          await waitForJWT();
+
           const { data } = await axiosInstance.get(`/users/user-data`);
 
           setUser({
@@ -62,11 +80,12 @@ export default function AuthContextProvider({ children }) {
           });
           console.log(name, image);
         } catch (err) {
-          console.log(err.message);
+          console.log("Error fetching user data:", err.message);
         }
       } else {
         setUser(null);
       }
+
       setAuthChecking(false);
     });
 
@@ -77,7 +96,14 @@ export default function AuthContextProvider({ children }) {
 
   return (
     <AuthContext.Provider
-      value={{ createUser, signInUser, user, isAuthChecking, userSignOut }}
+      value={{
+        createUser,
+        signInUser,
+        user,
+        isAuthChecking,
+        userSignOut,
+        updateUserProfile,
+      }}
     >
       {children}
     </AuthContext.Provider>
