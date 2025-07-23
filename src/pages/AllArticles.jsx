@@ -106,20 +106,33 @@ const ArticleCard = ({ article, user, navigate }) => {
 
         <motion.button
           whileHover={{
-            scale: article.isPremium && !user?.isPremiumTaken ? 1 : 1.03,
+            scale:
+              article.isPremium &&
+              !(user?.isPremiumTaken || user?.role === "admin")
+                ? 1
+                : 1.03,
           }}
           whileTap={{
-            scale: article.isPremium && !user?.isPremiumTaken ? 1 : 0.98,
+            scale:
+              article.isPremium &&
+              !(user?.isPremiumTaken || user?.role === "admin")
+                ? 1
+                : 0.98,
           }}
-          disabled={article.isPremium && !user?.isPremiumTaken}
+          disabled={
+            article.isPremium &&
+            !(user?.isPremiumTaken || user?.role === "admin")
+          }
           onClick={() => navigate(`/article/${article._id}`)}
           className={`w-full py-2.5 text-sm font-semibold rounded-lg transition-all ${
-            article.isPremium && !user?.isPremiumTaken
+            article.isPremium &&
+            !(user?.isPremiumTaken || user?.role === "admin")
               ? "bg-gray-300 dark:bg-gray-700 text-gray-600 dark:text-gray-400 cursor-not-allowed"
               : "bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-700 hover:to-blue-600 text-white shadow-md"
           }`}
         >
-          {article.isPremium && !user?.isPremiumTaken
+          {article.isPremium &&
+          !(user?.isPremiumTaken || user?.role === "admin")
             ? "🔒 Premium Required"
             : "Read Article →"}
         </motion.button>

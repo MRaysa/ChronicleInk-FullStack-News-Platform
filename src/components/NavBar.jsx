@@ -74,7 +74,8 @@ const Navbar = () => {
     if (link.public) return true;
     if (!user && link.private) return false;
     if (link.adminOnly && user?.role !== "admin") return false;
-    if (link.premiumOnly && !user?.isPremiumTaken) return false;
+    if (link.premiumOnly && !user?.isPremiumTaken && user?.role !== "admin")
+      return false;
     return true;
   });
 

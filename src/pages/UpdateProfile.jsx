@@ -4,9 +4,10 @@ import useAuth from "../hook/useAuth";
 import { useTheme } from "../context/ThemeContext";
 import { motion } from "framer-motion";
 import { fadeIn } from "../utils/motion";
-import { ToastContainer, toast } from "react-toastify";
+import { toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import axios from "axios";
+import axiosInstance from "../utils/axiosInstance";
 import {
   FaUserEdit,
   FaCheck,
@@ -16,14 +17,13 @@ import {
 } from "react-icons/fa";
 
 const UpdateProfile = () => {
-  const { user, updateUserProfile } = useAuth();
+  const { user, updateUserProfile, refreshUser } = useAuth();
   const { theme } = useTheme();
   const [isEditing, setIsEditing] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState("");
-  const [success, setSuccess] = useState("");
   const [selectedImage, setSelectedImage] = useState(null);
   const [imagePreview, setImagePreview] = useState("");
+  const [isUploadingImage, setIsUploadingImage] = useState(false);
 
   const {
     register,
@@ -48,6 +48,22 @@ const UpdateProfile = () => {
   const handleImageChange = (e) => {
     const file = e.target.files[0];
     if (file) {
+      // Validate image file
+      if (!file.type.match("image.*")) {
+        toast.error("Please select an image file (JPEG, PNG, GIF)", {
+          position: "top-right",
+          autoClose: 3000,
+        });
+        return;
+      }
+      if (file.size > 5 * 1024 * 1024) {
+        toast.error("Image size should be less than 5MB", {
+          position: "top-right",
+          autoClose: 3000,
+        });
+        return;
+      }
+
       setSelectedImage(file);
       const reader = new FileReader();
       reader.onloadend = () => {
@@ -57,53 +73,79 @@ const UpdateProfile = () => {
     }
   };
 
-  const onSubmit = async (data) => {
+  const onSubmit = async (formData) => {
     setLoading(true);
-    setError("");
-    setSuccess("");
+    setIsUploadingImage(true);
 
     try {
       let imageUrl = user?.image || "";
 
+      // Upload new image if selected
       if (selectedImage) {
-        const formData = new FormData();
-        formData.append("image", selectedImage);
-        const imgbbKey = import.meta.env.VITE_IMGB_API_KEY;
-        const uploadRes = await axios.post(
-          `https://api.imgbb.com/1/upload?key=${imgbbKey}`,
-          formData
-        );
-        imageUrl = uploadRes.data.data.display_url;
+        try {
+          const form = new FormData();
+          form.append("image", selectedImage);
+          const imgbbKey = import.meta.env.VITE_IMGB_API_KEY;
+          const uploadRes = await axios.post(
+            `https://api.imgbb.com/1/upload?key=${imgbbKey}`,
+            form
+          );
+          imageUrl = uploadRes.data.data.display_url;
+        } catch (uploadError) {
+          console.error("Image upload failed:", uploadError);
+          throw new Error("Failed to upload image. Please try again.");
+        }
       }
 
-      await updateUserProfile(data.name, imageUrl);
-
-      const updatedData = { name: data.name, image: imageUrl };
-      await axios.patch("/users/update", updatedData, {
-        headers: {
-          Authorization: `Bearer ${user?.accessToken}`,
-        },
+      // Update both local and server state
+      const response = await axiosInstance.patch("/users/update", {
+        name: formData.name.trim(),
+        image: imageUrl,
       });
 
-      // Success Toast
-      toast.success("Profile updated successfully!", {
+      // Check for successful response
+      if (!response.data?.success) {
+        throw new Error(response.data?.message || "Profile update failed");
+      }
+
+      // Update local state
+      await updateUserProfile(formData.name.trim(), imageUrl);
+
+      // Refresh user data
+      await refreshUser();
+
+      // Show success message
+      toast.success(response.data.message || "Profile updated successfully!", {
         position: "top-right",
         autoClose: 3000,
       });
 
+      // Reset form state
       setIsEditing(false);
       setSelectedImage(null);
     } catch (err) {
-      // Error Toast
-      toast.error(err.response?.data?.message || "Failed to update profile", {
-        position: "top-right",
-        autoClose: 3000,
-      });
+      console.error("Profile update error:", err);
+
+      // Revert to original image preview
+      setImagePreview(user?.image || "");
+
+      // Show error message
+      toast.error(
+        err.response?.data?.message ||
+          err.message ||
+          "Failed to update profile",
+        {
+          position: "top-right",
+          autoClose: 5000,
+        }
+      );
     } finally {
       setLoading(false);
+      setIsUploadingImage(false);
     }
   };
 
+  // Theme styles
   const textColor = theme === "dark" ? "text-gray-100" : "text-gray-800";
   const bgColor = theme === "dark" ? "bg-gray-800" : "bg-white";
   const inputBg = theme === "dark" ? "bg-gray-700" : "bg-gray-50";
@@ -167,12 +209,36 @@ const UpdateProfile = () => {
                 )}
                 {isEditing && (
                   <label className="absolute bottom-0 right-0 p-3 bg-white dark:bg-gray-700 rounded-full shadow-lg cursor-pointer group-hover:scale-110 transition-transform">
-                    <FaCamera className="text-purple-600 dark:text-purple-400" />
+                    {isUploadingImage ? (
+                      <svg
+                        className="animate-spin h-5 w-5 text-purple-600 dark:text-purple-400"
+                        xmlns="http://www.w3.org/2000/svg"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                      >
+                        <circle
+                          className="opacity-25"
+                          cx="12"
+                          cy="12"
+                          r="10"
+                          stroke="currentColor"
+                          strokeWidth="4"
+                        ></circle>
+                        <path
+                          className="opacity-75"
+                          fill="currentColor"
+                          d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                        ></path>
+                      </svg>
+                    ) : (
+                      <FaCamera className="text-purple-600 dark:text-purple-400" />
+                    )}
                     <input
                       type="file"
                       accept="image/*"
                       onChange={handleImageChange}
                       className="hidden"
+                      disabled={isUploadingImage}
                     />
                   </label>
                 )}
@@ -183,12 +249,16 @@ const UpdateProfile = () => {
             <div className="flex justify-center mb-6">
               <span
                 className={`px-4 py-2 rounded-full text-sm font-semibold ${
-                  user?.isPremiumTaken
+                  user?.role !== "user"
                     ? "bg-gradient-to-r from-yellow-400 to-yellow-600 text-white shadow-lg"
                     : "bg-gray-200 dark:bg-gray-700 shadow-md"
                 }`}
               >
-                {user?.isPremiumTaken ? "🌟 Premium Member" : "Free Member"}
+                {user?.role === "premium"
+                  ? "🌟 Premium Member"
+                  : user?.role === "admin"
+                  ? "🛡️ Admin"
+                  : "Free Member"}
               </span>
             </div>
 
@@ -196,14 +266,14 @@ const UpdateProfile = () => {
             <div className="space-y-4">
               <div className="flex justify-between items-center border-b pb-2 border-gray-300 dark:border-gray-600">
                 <span className="font-medium">Member Since:</span>
-                <span>
-                  {new Date(user?.createdAt || new Date()).toLocaleDateString()}
-                </span>
+                <span>{new Date(user?.createdAt).toLocaleDateString()}</span>
               </div>
               <div className="flex justify-between items-center border-b pb-2 border-gray-300 dark:border-gray-600">
                 <span className="font-medium">Last Active:</span>
                 <span>
-                  {new Date(user?.lastActive || new Date()).toLocaleString()}
+                  {user?.lastLogin
+                    ? new Date(user.lastLogin).toLocaleString()
+                    : "Never"}
                 </span>
               </div>
               <div className="flex justify-between items-center border-b pb-2 border-gray-300 dark:border-gray-600">
@@ -212,6 +282,14 @@ const UpdateProfile = () => {
                   {user?.email}
                 </span>
               </div>
+              {user?.premiumExpiry && (
+                <div className="flex justify-between items-center border-b pb-2 border-gray-300 dark:border-gray-600">
+                  <span className="font-medium">Premium Expires:</span>
+                  <span>
+                    {new Date(user.premiumExpiry).toLocaleDateString()}
+                  </span>
+                </div>
+              )}
             </div>
           </div>
 
@@ -240,6 +318,7 @@ const UpdateProfile = () => {
                       },
                     })}
                     className={`w-full p-4 rounded-xl border ${borderColor} ${inputBg} focus:outline-none focus:ring-2 focus:ring-purple-500 shadow-sm`}
+                    disabled={loading}
                   />
                   {errors.name && (
                     <p className="mt-2 text-sm text-red-500">
@@ -251,7 +330,7 @@ const UpdateProfile = () => {
                 <div className="pt-4">
                   <button
                     type="submit"
-                    disabled={loading}
+                    disabled={loading || isUploadingImage}
                     className={`w-full flex items-center justify-center gap-2 px-6 py-4 rounded-xl ${buttonBg} text-white font-semibold shadow-lg hover:shadow-xl transition-all disabled:opacity-70`}
                   >
                     {loading ? (
@@ -276,7 +355,9 @@ const UpdateProfile = () => {
                             d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
                           ></path>
                         </svg>
-                        Updating...
+                        {isUploadingImage
+                          ? "Uploading Image..."
+                          : "Updating..."}
                       </>
                     ) : (
                       <>
@@ -285,17 +366,6 @@ const UpdateProfile = () => {
                     )}
                   </button>
                 </div>
-
-                {error && (
-                  <div className="p-4 rounded-xl bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-100 border border-red-200 dark:border-red-800">
-                    {error}
-                  </div>
-                )}
-                {success && (
-                  <div className="p-4 rounded-xl bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-100 border border-green-200 dark:border-green-800">
-                    {success}
-                  </div>
-                )}
               </div>
             </form>
           ) : (

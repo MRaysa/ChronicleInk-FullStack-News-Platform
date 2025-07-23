@@ -2,6 +2,7 @@ import { CardElement, useElements, useStripe } from "@stripe/react-stripe-js";
 import { useState } from "react";
 import useAuth from "../hook/useAuth";
 import axiosInstance from "../utils/axiosInstance";
+import { toast } from "react-toastify";
 
 export default function PaymentForm({ setIsOpen, amount, duration, unit }) {
   const stripe = useStripe();
@@ -58,10 +59,16 @@ export default function PaymentForm({ setIsOpen, amount, duration, unit }) {
         return;
       }
 
-      if (paymentIntent.status === "succeeded") {
+      if (paymentIntent.status === "succeeded" && user.role !== "admin") {
         await axiosInstance.patch("/users/premium", { duration, unit });
         setIsOpen(false);
         window.location.href = "/all-articles";
+      }
+      if (paymentIntent.status === "succeeded" && user.role === "admin") {
+        setIsOpen(false);
+        toast.success(
+          "Payment successful! Admins cannot subscribe to premium plans."
+        );
       }
     } catch (err) {
       setError("An unexpected error occurred: " + err.message);
