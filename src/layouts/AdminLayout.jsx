@@ -26,7 +26,7 @@ import {
 } from "react-icons/fa";
 
 const AdminLayout = () => {
-  const { user, logout } = useAuth();
+  const { user, userSignOut } = useAuth();
   const userName = user?.name || "Admin";
   const { theme, toggleTheme } = useTheme();
   const [sidebarOpen, setSidebarOpen] = useState(true);
@@ -65,7 +65,7 @@ const AdminLayout = () => {
   const handleSignOut = async () => {
     try {
       setIsSigningOut(true);
-      await logout(); // Using the logout function from useAuth
+      await userSignOut(); // Using the userSignOut function from useAuth
       navigate("/");
       setSidebarOpen(false);
       setMobileSidebarOpen(false); // Close mobile sidebar if open
@@ -250,7 +250,7 @@ const AdminLayout = () => {
 
           {/* Sign Out button */}
           <button
-            onClick={handleSignOut}
+            onClick={userSignOut}
             disabled={isSigningOut}
             className={`p-3 rounded-lg flex items-center justify-center w-full ${
               theme === "dark"
