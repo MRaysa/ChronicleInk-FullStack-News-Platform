@@ -167,4 +167,4 @@ Contributions are welcome! Please open issues or submit pull requests for improv
 
 ---
 
-**Made with ❤️ by [MRaysa](https://github.com/MRaysa) and [contributors](https://github.com/MRaysa/ChronicleInk-FullStack-News-Platform/graphs/contributors)**
+**Made with ❤️ by [MRaysa](https://github.com/MRaysa)**
