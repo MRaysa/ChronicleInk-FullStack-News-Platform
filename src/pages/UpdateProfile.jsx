@@ -17,7 +17,7 @@ import {
 } from "react-icons/fa";
 
 const UpdateProfile = () => {
-  const { user, updateUserProfile, refreshUser } = useAuth();
+  const { user, updateUserProfile } = useAuth();
   const { theme } = useTheme();
   const [isEditing, setIsEditing] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -38,9 +38,7 @@ const UpdateProfile = () => {
 
   useEffect(() => {
     if (user) {
-      reset({
-        name: user.name || "",
-      });
+      reset({ name: user.name || "" });
       setImagePreview(user.image || "");
     }
   }, [user, reset]);
@@ -48,27 +46,18 @@ const UpdateProfile = () => {
   const handleImageChange = (e) => {
     const file = e.target.files[0];
     if (file) {
-      // Validate image file
       if (!file.type.match("image.*")) {
-        toast.error("Please select an image file (JPEG, PNG, GIF)", {
-          position: "top-right",
-          autoClose: 3000,
-        });
+        toast.error("Please select an image file (JPEG, PNG, GIF)");
         return;
       }
       if (file.size > 5 * 1024 * 1024) {
-        toast.error("Image size should be less than 5MB", {
-          position: "top-right",
-          autoClose: 3000,
-        });
+        toast.error("Image size should be less than 5MB");
         return;
       }
 
       setSelectedImage(file);
       const reader = new FileReader();
-      reader.onloadend = () => {
-        setImagePreview(reader.result);
-      };
+      reader.onloadend = () => setImagePreview(reader.result);
       reader.readAsDataURL(file);
     }
   };
@@ -80,64 +69,47 @@ const UpdateProfile = () => {
     try {
       let imageUrl = user?.image || "";
 
-      // Upload new image if selected
       if (selectedImage) {
-        try {
-          const form = new FormData();
-          form.append("image", selectedImage);
-          const imgbbKey = import.meta.env.VITE_IMGB_API_KEY;
-          const uploadRes = await axios.post(
-            `https://api.imgbb.com/1/upload?key=${imgbbKey}`,
-            form
-          );
-          imageUrl = uploadRes.data.data.display_url;
-        } catch (uploadError) {
-          console.error("Image upload failed:", uploadError);
-          throw new Error("Failed to upload image. Please try again.");
-        }
+        const form = new FormData();
+        form.append("image", selectedImage);
+        const uploadRes = await axios.post(
+          `https://api.imgbb.com/1/upload?key=${
+            import.meta.env.VITE_IMGB_API_KEY
+          }`,
+          form
+        );
+        imageUrl = uploadRes.data.data.display_url;
       }
 
-      // Update both local and server state
+      // Optimistic UI update
+      const updatedUser = {
+        ...user,
+        name: formData.name.trim(),
+        image: imageUrl,
+      };
+      updateUserProfile(updatedUser);
+
+      // Server update
       const response = await axiosInstance.patch("/users/update", {
         name: formData.name.trim(),
         image: imageUrl,
       });
 
-      // Check for successful response
-      if (!response.data?.success) {
-        throw new Error(response.data?.message || "Profile update failed");
+      if (!response.data?.user) {
+        throw new Error("Profile update failed");
       }
 
-      // Update local state
-      await updateUserProfile(formData.name.trim(), imageUrl);
-
-      // Refresh user data
-      await refreshUser();
-
-      // Show success message
-      toast.success(response.data.message || "Profile updated successfully!", {
-        position: "top-right",
-        autoClose: 3000,
-      });
-
-      // Reset form state
+      toast.success("Profile updated successfully!");
       setIsEditing(false);
       setSelectedImage(null);
     } catch (err) {
-      console.error("Profile update error:", err);
-
-      // Revert to original image preview
+      console.error("Update error:", err);
+      // Revert on error
+      updateUserProfile(user);
       setImagePreview(user?.image || "");
 
-      // Show error message
       toast.error(
-        err.response?.data?.message ||
-          err.message ||
-          "Failed to update profile",
-        {
-          position: "top-right",
-          autoClose: 5000,
-        }
+        err.response?.data?.message || err.message || "Failed to update profile"
       );
     } finally {
       setLoading(false);

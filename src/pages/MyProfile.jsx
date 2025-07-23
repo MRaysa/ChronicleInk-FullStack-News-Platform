@@ -1,56 +1,40 @@
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import useAuth from "../hook/useAuth";
-import axiosInstance from "../utils/axiosInstance";
 import { motion } from "framer-motion";
 import {
-  FiUser,
   FiMail,
   FiCalendar,
   FiEdit2,
   FiClock,
-  FiAward,
-  FiBookmark,
   FiRefreshCw,
 } from "react-icons/fi";
 import { RiVipCrownLine } from "react-icons/ri";
-import { BsGraphUp } from "react-icons/bs";
+import axiosInstance from "../utils/axiosInstance";
 
 export default function MyProfile() {
-  const { user: authUser } = useAuth(); // Get real-time auth data
-  const [additionalUserData, setAdditionalUserData] = useState(null);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState(null);
+  const { user, refreshUser } = useAuth();
   const navigate = useNavigate();
 
-  const fetchAdditionalData = async () => {
+  const updateLastLogin = async () => {
     try {
-      setLoading(true);
-      const response = await axiosInstance.get("/users/additional-data");
-      setAdditionalUserData(response.data);
-
-      // Update last login
-      if (authUser?.uid) {
-        await axiosInstance.patch(`/users/${authUser.uid}/last-login`);
+      if (user?.uid) {
+        await axiosInstance.patch(`/users/${user.uid}/last-login`);
       }
     } catch (err) {
-      console.error("Failed to fetch user data:", err);
-      setError("Failed to load profile data");
-    } finally {
-      setLoading(false);
+      console.error("Failed to update last login:", err);
     }
   };
 
   useEffect(() => {
-    if (authUser?.uid) {
-      fetchAdditionalData();
+    if (user?.uid) {
+      updateLastLogin();
     }
-  }, [authUser?.uid]); // Refetch when authUser changes
+  }, [user?.uid]);
 
   const formatDate = (dateString) => {
     if (!dateString) return "Never logged in";
-    const date = new Date(dateString);
-    return date.toLocaleDateString("en-US", {
+    return new Date(dateString).toLocaleDateString("en-US", {
       year: "numeric",
       month: "long",
       day: "numeric",
@@ -59,13 +43,7 @@ export default function MyProfile() {
     });
   };
 
-  // Combine auth user data with additional data
-  const userData = {
-    ...authUser,
-    ...additionalUserData,
-  };
-
-  if (!authUser) {
+  if (!user) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-indigo-50 to-purple-50 dark:from-gray-900 dark:to-gray-800 flex items-center justify-center">
         <div className="p-8 rounded-2xl bg-white/90 dark:bg-gray-800/90 backdrop-blur-lg border border-gray-200/50 dark:border-gray-700/50 shadow-xl max-w-md w-full text-center">
@@ -76,14 +54,6 @@ export default function MyProfile() {
             You need to be logged in to view this page
           </p>
         </div>
-      </div>
-    );
-  }
-
-  if (loading && !additionalUserData) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-indigo-50 to-purple-50 dark:from-gray-900 dark:to-gray-800 flex items-center justify-center">
-        <div className="animate-spin rounded-full h-16 w-16 border-t-4 border-b-4 border-purple-600"></div>
       </div>
     );
   }
@@ -103,7 +73,7 @@ export default function MyProfile() {
               <div className="relative">
                 <img
                   src={
-                    userData.image ||
+                    user.image ||
                     "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?ixlib=rb-1.2.1&auto=format&fit=crop&w=200&q=80"
                   }
                   alt="Profile"
@@ -117,15 +87,10 @@ export default function MyProfile() {
                     <FiEdit2 className="text-purple-600 dark:text-purple-400" />
                   </button>
                   <button
-                    onClick={fetchAdditionalData}
-                    disabled={loading}
+                    onClick={refreshUser}
                     className="p-2 bg-white dark:bg-gray-700 rounded-full shadow-md hover:bg-gray-100 dark:hover:bg-gray-600 transition-all"
                   >
-                    <FiRefreshCw
-                      className={`text-purple-600 dark:text-purple-400 ${
-                        loading ? "animate-spin" : ""
-                      }`}
-                    />
+                    <FiRefreshCw className="text-purple-600 dark:text-purple-400" />
                   </button>
                 </div>
               </div>
@@ -137,11 +102,11 @@ export default function MyProfile() {
             <div className="flex justify-between items-start mb-6">
               <div>
                 <h1 className="text-3xl font-bold text-gray-800 dark:text-white">
-                  {userData.name || "Anonymous User"}
+                  {user.name || "Anonymous User"}
                 </h1>
                 <div className="flex items-center mt-2 text-gray-600 dark:text-gray-300">
                   <FiMail className="mr-2" />
-                  <span>{userData.email}</span>
+                  <span>{user.email}</span>
                 </div>
               </div>
             </div>
@@ -158,9 +123,7 @@ export default function MyProfile() {
                       Last Active
                     </p>
                     <p className="font-medium text-gray-800 dark:text-white">
-                      {formatDate(
-                        userData.lastLogin || new Date().toISOString()
-                      )}
+                      {formatDate(user.lastLogin)}
                     </p>
                   </div>
                 </div>
@@ -176,7 +139,7 @@ export default function MyProfile() {
                       Member Since
                     </p>
                     <p className="font-medium text-gray-800 dark:text-white">
-                      {formatDate(userData.createdAt)}
+                      {formatDate(user.createdAt)}
                     </p>
                   </div>
                 </div>
@@ -193,16 +156,23 @@ export default function MyProfile() {
                     </p>
                     <div className="flex items-center gap-2">
                       <p className="font-medium text-gray-800 dark:text-white">
-                        {userData.isPremiumTaken
+                        {user.role === "premium"
                           ? "Premium Member"
+                          : user.role === "admin"
+                          ? "Administrator"
                           : "Free Member"}
                       </p>
-                      {userData.isPremiumTaken && (
+                      {user.role === "premium" && (
                         <span className="text-xs px-2 py-0.5 bg-gradient-to-r from-yellow-400 to-yellow-600 text-white rounded-full">
                           PRO
                         </span>
                       )}
                     </div>
+                    {user.premiumExpiry && (
+                      <p className="text-xs mt-1 text-gray-500 dark:text-gray-400">
+                        Expires: {formatDate(user.premiumExpiry)}
+                      </p>
+                    )}
                   </div>
                 </div>
               </div>
