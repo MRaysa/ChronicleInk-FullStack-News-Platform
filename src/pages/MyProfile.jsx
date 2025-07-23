@@ -1,219 +1,32 @@
-import { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import useAuth from "../hook/useAuth";
 import { useTheme } from "../context/ThemeContext";
 import { motion } from "framer-motion";
-import { FaUserEdit, FaUserCircle, FaSpinner } from "react-icons/fa";
-import { HiSparkles } from "react-icons/hi";
 import {
   FiMail,
   FiCalendar,
+  FiEdit2,
   FiClock,
   FiRefreshCw,
   FiUser,
   FiShield,
 } from "react-icons/fi";
 import { RiVipCrownLine } from "react-icons/ri";
+import { HiSparkles } from "react-icons/hi";
 import axiosInstance from "../utils/axiosInstance";
 import { toast } from "react-toastify";
 
-const ProfileHeader = ({ user, onEdit, onRefresh, theme }) => {
-  const themeStyles = {
-    light: {
-      bg: "bg-gradient-to-r from-purple-500 to-indigo-600",
-      text: "text-white",
-    },
-    dark: {
-      bg: "bg-gradient-to-r from-gray-800 to-gray-900",
-      text: "text-gray-100",
-    },
-  };
-
-  const currentTheme = themeStyles[theme] || themeStyles.light;
-
-  return (
-    <div className={`relative h-40 ${currentTheme.bg}`}>
-      <div className="absolute -bottom-16 left-6">
-        <div className="relative">
-          <div className="w-32 h-32 rounded-full overflow-hidden border-4 border-white dark:border-gray-800 shadow-lg">
-            {user?.image ? (
-              <img
-                src={user.image}
-                alt="Profile"
-                className="w-full h-full object-cover"
-                onError={(e) => {
-                  e.target.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(
-                    user?.name || "User"
-                  )}&background=6366f1&color=ffffff&size=200`;
-                }}
-              />
-            ) : (
-              <div className="w-full h-full bg-gradient-to-br from-slate-200 to-slate-300 dark:from-gray-600 dark:to-gray-700 flex items-center justify-center">
-                <FaUserCircle className="w-16 h-16 text-slate-400 dark:text-gray-500" />
-              </div>
-            )}
-          </div>
-          <div className="absolute bottom-0 right-0 flex gap-2">
-            <motion.button
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-              onClick={onEdit}
-              className="p-3 bg-white dark:bg-gray-700 rounded-full shadow-md hover:bg-gray-100 dark:hover:bg-gray-600 transition-all"
-            >
-              <FaUserEdit className="text-purple-600 dark:text-purple-400" />
-            </motion.button>
-            <motion.button
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-              onClick={onRefresh}
-              className="p-3 bg-white dark:bg-gray-700 rounded-full shadow-md hover:bg-gray-100 dark:hover:bg-gray-600 transition-all"
-            >
-              <FiRefreshCw className="text-purple-600 dark:text-purple-400" />
-            </motion.button>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-};
-
-const ProfileStats = ({ user, theme }) => {
-  const themeStyles = {
-    light: {
-      bg: "bg-white",
-      text: "text-gray-800",
-      border: "border-gray-200",
-      iconBg: "bg-indigo-100",
-      iconColor: "text-indigo-600",
-    },
-    dark: {
-      bg: "bg-gray-800",
-      text: "text-gray-100",
-      border: "border-gray-700",
-      iconBg: "bg-indigo-900/30",
-      iconColor: "text-indigo-400",
-    },
-  };
-
-  const currentTheme = themeStyles[theme] || themeStyles.light;
-
-  const formatDate = (dateString) => {
-    if (!dateString) return "Never logged in";
-    return new Date(dateString).toLocaleDateString("en-US", {
-      year: "numeric",
-      month: "long",
-      day: "numeric",
-      hour: "2-digit",
-      minute: "2-digit",
-    });
-  };
-
-  const getRoleConfig = (role) => {
-    switch (role) {
-      case "premium":
-        return {
-          label: "Premium Member",
-          icon: RiVipCrownLine,
-          color: "text-yellow-500",
-          bg: "bg-yellow-100 dark:bg-yellow-900/30",
-        };
-      case "admin":
-        return {
-          label: "Administrator",
-          icon: FiShield,
-          color: "text-purple-500",
-          bg: "bg-purple-100 dark:bg-purple-900/30",
-        };
-      default:
-        return {
-          label: "Standard User",
-          icon: FiUser,
-          color: "text-blue-500",
-          bg: "bg-blue-100 dark:bg-blue-900/30",
-        };
-    }
-  };
-
-  const roleConfig = getRoleConfig(user?.role);
-
-  return (
-    <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
-      {/* Last Active */}
-      <div
-        className={`p-4 rounded-xl border ${currentTheme.border} ${currentTheme.bg} shadow-sm`}
-      >
-        <div className="flex items-center">
-          <div className={`p-2 ${currentTheme.iconBg} rounded-lg mr-3`}>
-            <FiClock className={`${currentTheme.iconColor}`} />
-          </div>
-          <div>
-            <p className={`text-sm ${currentTheme.text} opacity-80`}>
-              Last Active
-            </p>
-            <p className={`font-medium ${currentTheme.text}`}>
-              {formatDate(user?.lastLogin)}
-            </p>
-          </div>
-        </div>
-      </div>
-
-      {/* Member Since */}
-      <div
-        className={`p-4 rounded-xl border ${currentTheme.border} ${currentTheme.bg} shadow-sm`}
-      >
-        <div className="flex items-center">
-          <div className={`p-2 ${currentTheme.iconBg} rounded-lg mr-3`}>
-            <FiCalendar className={`${currentTheme.iconColor}`} />
-          </div>
-          <div>
-            <p className={`text-sm ${currentTheme.text} opacity-80`}>
-              Member Since
-            </p>
-            <p className={`font-medium ${currentTheme.text}`}>
-              {formatDate(user?.createdAt)}
-            </p>
-          </div>
-        </div>
-      </div>
-
-      {/* Status */}
-      <div
-        className={`p-4 rounded-xl border ${currentTheme.border} ${currentTheme.bg} shadow-sm`}
-      >
-        <div className="flex items-center">
-          <div className={`p-2 ${roleConfig.bg} rounded-lg mr-3`}>
-            <roleConfig.icon className={`${roleConfig.color}`} />
-          </div>
-          <div>
-            <p className={`text-sm ${currentTheme.text} opacity-80`}>Status</p>
-            <div className="flex items-center gap-2">
-              <p className={`font-medium ${currentTheme.text}`}>
-                {roleConfig.label}
-              </p>
-              {user?.role === "premium" && (
-                <span className="text-xs px-2 py-0.5 bg-gradient-to-r from-yellow-400 to-yellow-600 text-white rounded-full">
-                  PRO
-                </span>
-              )}
-            </div>
-            {user?.premiumExpiry && (
-              <p className={`text-xs mt-1 ${currentTheme.text} opacity-80`}>
-                Expires: {formatDate(user.premiumExpiry)}
-              </p>
-            )}
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-};
-
 const MyProfile = () => {
-  const { user, refreshUser } = useAuth();
+  const { user } = useAuth();
   const { theme } = useTheme();
   const navigate = useNavigate();
   const [userDetails, setUserDetails] = useState(null);
   const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    fetchUserDetails();
+  }, []);
 
   const fetchUserDetails = async () => {
     try {
@@ -228,44 +41,73 @@ const MyProfile = () => {
     }
   };
 
-  useEffect(() => {
-    fetchUserDetails();
-  }, []);
-
-  const updateLastLogin = async () => {
-    try {
-      if (user?.uid) {
-        await axiosInstance.patch(`/users/${user.uid}/last-login`);
-      }
-    } catch (err) {
-      console.error("Failed to update last login:", err);
-    }
+  const formatDate = (dateString) => {
+    if (!dateString) return "Not available";
+    return new Date(dateString).toLocaleString("en-US", {
+      year: "numeric",
+      month: "long",
+      day: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
+    });
   };
 
-  useEffect(() => {
-    if (user?.uid) {
-      updateLastLogin();
-    }
-  }, [user?.uid]);
+  const getRoleConfig = (role) => {
+    const baseConfig = {
+      premium: {
+        label: "Premium User",
+        icon: RiVipCrownLine,
+        textColor: "text-yellow-600",
+        darkTextColor: "text-yellow-400",
+        bgColor: "bg-yellow-50",
+        darkBgColor: "bg-yellow-900/20",
+        borderColor: "border-yellow-200",
+        darkBorderColor: "border-yellow-800/50",
+      },
+      admin: {
+        label: "Administrator",
+        icon: FiShield,
+        textColor: "text-purple-600",
+        darkTextColor: "text-purple-400",
+        bgColor: "bg-purple-50",
+        darkBgColor: "bg-purple-900/20",
+        borderColor: "border-purple-200",
+        darkBorderColor: "border-purple-800/50",
+      },
+      default: {
+        label: "Standard User",
+        icon: FiUser,
+        textColor: "text-blue-600",
+        darkTextColor: "text-blue-400",
+        bgColor: "bg-blue-50",
+        darkBgColor: "bg-blue-900/20",
+        borderColor: "border-blue-200",
+        darkBorderColor: "border-blue-800/50",
+      },
+    };
 
-  if (!user) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-indigo-50 to-purple-50 dark:from-gray-900 dark:to-gray-800 flex items-center justify-center">
-        <div className="p-8 rounded-2xl bg-white/90 dark:bg-gray-800/90 backdrop-blur-lg border border-gray-200/50 dark:border-gray-700/50 shadow-xl max-w-md w-full text-center">
-          <h3 className="text-xl font-bold text-gray-800 dark:text-white mb-2">
-            Please Sign In
-          </h3>
-          <p className="text-gray-600 dark:text-gray-300">
-            You need to be logged in to view this page
-          </p>
-        </div>
-      </div>
-    );
-  }
+    return {
+      ...baseConfig.default,
+      ...(role === "premium" && baseConfig.premium),
+      ...(role === "admin" && baseConfig.admin),
+    };
+  };
+
+  const isPremiumActive = () => {
+    if (!userDetails?.premiumExpiry || userDetails.role !== "premium")
+      return false;
+    return new Date(userDetails.premiumExpiry) > new Date();
+  };
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-50 to-slate-100 dark:from-gray-900 dark:to-gray-800">
+      <div
+        className={`min-h-screen flex items-center justify-center ${
+          theme === "dark"
+            ? "bg-gradient-to-br from-gray-900 to-gray-800"
+            : "bg-gradient-to-br from-slate-50 to-slate-100"
+        }`}
+      >
         <motion.div
           animate={{ rotate: 360 }}
           transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
@@ -275,63 +117,431 @@ const MyProfile = () => {
     );
   }
 
+  const roleConfig = getRoleConfig(userDetails?.role);
+  const RoleIcon = roleConfig.icon;
+
+  // Theme-based styles
   const themeStyles = {
     light: {
-      bg: "bg-gradient-to-br from-indigo-50 to-purple-50",
-      cardBg: "bg-white/90",
-      cardText: "text-gray-800",
-      border: "border-gray-200/50",
+      bg: "bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100",
+      cardBg: "bg-white",
+      text: "text-slate-800",
+      secondaryText: "text-slate-600",
+      mutedText: "text-slate-500",
+      border: "border-slate-200",
+      contentBg: "bg-slate-50",
+      button: {
+        primary:
+          "bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white",
+        secondary:
+          "bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-200",
+      },
     },
     dark: {
-      bg: "bg-gradient-to-br from-gray-900 to-gray-800",
-      cardBg: "bg-gray-800/90",
-      cardText: "text-gray-100",
-      border: "border-gray-700/50",
+      bg: "bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900",
+      cardBg: "bg-gray-800",
+      text: "text-gray-100",
+      secondaryText: "text-gray-300",
+      mutedText: "text-gray-400",
+      border: "border-gray-700",
+      contentBg: "bg-gray-700",
+      button: {
+        primary:
+          "bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white",
+        secondary:
+          "bg-gray-700 hover:bg-gray-600 text-gray-200 border border-gray-600",
+      },
     },
   };
 
   const currentTheme = themeStyles[theme] || themeStyles.light;
 
   return (
-    <div
-      className={`min-h-screen ${currentTheme.bg} py-10 px-4 sm:px-6 lg:px-8`}
-    >
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.6 }}
-        className="max-w-4xl mx-auto"
-      >
-        <div
-          className={`${currentTheme.cardBg} backdrop-blur-lg rounded-3xl overflow-hidden shadow-2xl border ${currentTheme.border}`}
+    <div className={`min-h-screen ${currentTheme.bg} p-4 sm:p-6 lg:p-8`}>
+      <div className="max-w-4xl mx-auto">
+        {/* Header */}
+        <motion.div
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="text-center mb-8"
         >
-          <ProfileHeader
-            user={userDetails || user}
-            onEdit={() => navigate("/update-profile")}
-            onRefresh={fetchUserDetails}
-            theme={theme}
-          />
+          <h1
+            className={`text-4xl font-bold bg-gradient-to-r ${
+              theme === "dark"
+                ? "from-slate-300 to-slate-100"
+                : "from-slate-700 to-slate-900"
+            } bg-clip-text text-transparent mb-2`}
+          >
+            My Profile
+          </h1>
+          <p className={currentTheme.secondaryText}>
+            Manage account information and preferences
+          </p>
+        </motion.div>
 
-          {/* Profile Content */}
-          <div className="pt-20 px-6 pb-8">
-            <div className="flex justify-between items-start mb-6">
-              <div>
-                <h1 className={`text-3xl font-bold ${currentTheme.cardText}`}>
-                  {userDetails?.name || user?.name || "Anonymous User"}
-                </h1>
-                <div
-                  className={`flex items-center mt-2 ${currentTheme.cardText} opacity-80`}
+        {/* Main Profile Card */}
+        <motion.div
+          initial={{ opacity: 0, scale: 0.95 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ delay: 0.1 }}
+          className={`${currentTheme.cardBg} rounded-3xl shadow-xl border ${currentTheme.border} overflow-hidden mb-6`}
+        >
+          {/* Profile Header with Gradient */}
+          <div
+            className={`bg-gradient-to-r ${
+              userDetails?.role === "premium"
+                ? "from-yellow-400 to-orange-500"
+                : userDetails?.role === "admin"
+                ? "from-purple-400 to-pink-500"
+                : "from-blue-400 to-cyan-500"
+            } p-8 relative overflow-hidden`}
+          >
+            <div className="absolute inset-0 bg-black/10"></div>
+            <div className="relative z-10 flex flex-col sm:flex-row items-center gap-6">
+              {/* Avatar */}
+              <motion.div
+                whileHover={{ scale: 1.05 }}
+                className="relative group"
+              >
+                <div className="w-24 h-24 sm:w-32 sm:h-32 rounded-full overflow-hidden border-4 border-white dark:border-gray-800 shadow-xl">
+                  <img
+                    src={
+                      user?.image || userDetails?.image || "/default-avatar.png"
+                    }
+                    alt={user?.name || "User"}
+                    className="w-full h-full object-cover"
+                    onError={(e) => {
+                      e.target.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(
+                        user?.name || "User"
+                      )}&background=6366f1&color=ffffff&size=200`;
+                    }}
+                  />
+                </div>
+                {userDetails?.role === "premium" && isPremiumActive() && (
+                  <div className="absolute -top-2 -right-2 bg-yellow-400 rounded-full p-2 shadow-lg">
+                    <HiSparkles className="w-5 h-5 text-yellow-800" />
+                  </div>
+                )}
+              </motion.div>
+
+              {/* User Info */}
+              <div className="text-center sm:text-left text-white">
+                <h2 className="text-2xl sm:text-3xl font-bold mb-2">
+                  {user?.name || userDetails?.name}
+                </h2>
+                <div className="flex items-center justify-center sm:justify-start gap-2 mb-3">
+                  <RoleIcon className="w-5 h-5" />
+                  <span className="text-white/90 font-medium">
+                    {roleConfig.label}
+                  </span>
+                </div>
+                <p className="text-white/80 text-sm sm:text-base">
+                  Member since{" "}
+                  {formatDate(userDetails?.createdAt).split(" at")[0]}
+                </p>
+              </div>
+            </div>
+          </div>
+
+          {/* Profile Details */}
+          <div className="p-8">
+            <div className="grid gap-6 md:grid-cols-2">
+              {/* Basic Information */}
+              <div className="space-y-4">
+                <h3
+                  className={`text-xl font-semibold ${currentTheme.text} mb-4 flex items-center gap-2`}
                 >
-                  <FiMail className="mr-2" />
-                  <span>{userDetails?.email || user?.email}</span>
+                  <FiUser className="w-5 h-5" />
+                  Basic Information
+                </h3>
+
+                <div className="space-y-3">
+                  <div
+                    className={`flex items-center gap-3 p-3 ${
+                      theme === "dark" ? "bg-gray-700" : "bg-slate-50"
+                    } rounded-xl`}
+                  >
+                    <FiMail className={`w-5 h-5 ${currentTheme.mutedText}`} />
+                    <div>
+                      <p className={`text-sm ${currentTheme.mutedText}`}>
+                        Email Address
+                      </p>
+                      <p className={`font-medium ${currentTheme.text}`}>
+                        {user?.email || userDetails?.email}
+                      </p>
+                    </div>
+                  </div>
+
+                  <div
+                    className={`flex items-center gap-3 p-3 ${
+                      theme === "dark" ? "bg-gray-700" : "bg-slate-50"
+                    } rounded-xl`}
+                  >
+                    <FiUser className={`w-5 h-5 ${currentTheme.mutedText}`} />
+                    <div>
+                      <p className={`text-sm ${currentTheme.mutedText}`}>
+                        Full Name
+                      </p>
+                      <p className={`font-medium ${currentTheme.text}`}>
+                        {user?.name || userDetails?.name}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Account Activity */}
+              <div className="space-y-4">
+                <h3
+                  className={`text-xl font-semibold ${currentTheme.text} mb-4 flex items-center gap-2`}
+                >
+                  <FiClock className="w-5 h-5" />
+                  Account Activity
+                </h3>
+
+                <div className="space-y-3">
+                  <div
+                    className={`flex items-center gap-3 p-3 ${
+                      theme === "dark" ? "bg-gray-700" : "bg-slate-50"
+                    } rounded-xl`}
+                  >
+                    <FiCalendar
+                      className={`w-5 h-5 ${currentTheme.mutedText}`}
+                    />
+                    <div>
+                      <p className={`text-sm ${currentTheme.mutedText}`}>
+                        Last Login
+                      </p>
+                      <p className={`font-medium ${currentTheme.text}`}>
+                        {formatDate(userDetails?.lastLogin)}
+                      </p>
+                    </div>
+                  </div>
+
+                  <div
+                    className={`flex items-center gap-3 p-3 ${
+                      theme === "dark" ? "bg-gray-700" : "bg-slate-50"
+                    } rounded-xl`}
+                  >
+                    <FiCalendar
+                      className={`w-5 h-5 ${currentTheme.mutedText}`}
+                    />
+                    <div>
+                      <p className={`text-sm ${currentTheme.mutedText}`}>
+                        Account Created
+                      </p>
+                      <p className={`font-medium ${currentTheme.text}`}>
+                        {formatDate(userDetails?.createdAt)}
+                      </p>
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>
 
-            <ProfileStats user={userDetails || user} theme={theme} />
+            {/* Premium Status */}
+            {userDetails?.role === "premium" && (
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.3 }}
+                className={`mt-8 p-6 rounded-2xl border ${
+                  theme === "dark"
+                    ? "bg-yellow-900/20 border-yellow-800/50"
+                    : "bg-gradient-to-r from-yellow-50 to-orange-50 border-yellow-200"
+                }`}
+              >
+                <div className="flex items-center gap-3 mb-4">
+                  <RiVipCrownLine
+                    className={`w-6 h-6 ${
+                      theme === "dark" ? "text-yellow-400" : "text-yellow-600"
+                    }`}
+                  />
+                  <h3
+                    className={`text-xl font-semibold ${
+                      theme === "dark" ? "text-yellow-300" : "text-yellow-800"
+                    }`}
+                  >
+                    Premium Membership
+                  </h3>
+                </div>
+
+                <div className="grid gap-4 sm:grid-cols-2">
+                  <div>
+                    <p
+                      className={`text-sm ${
+                        theme === "dark" ? "text-yellow-400" : "text-yellow-600"
+                      }`}
+                    >
+                      Premium Since
+                    </p>
+                    <p
+                      className={`font-medium ${
+                        theme === "dark" ? "text-yellow-300" : "text-yellow-800"
+                      }`}
+                    >
+                      {formatDate(userDetails?.premiumTaken)}
+                    </p>
+                  </div>
+
+                  {userDetails?.premiumExpiry && (
+                    <div>
+                      <p
+                        className={`text-sm ${
+                          theme === "dark"
+                            ? "text-yellow-400"
+                            : "text-yellow-600"
+                        }`}
+                      >
+                        Expires On
+                      </p>
+                      <p
+                        className={`font-medium ${
+                          theme === "dark"
+                            ? "text-yellow-300"
+                            : "text-yellow-800"
+                        }`}
+                      >
+                        {formatDate(userDetails?.premiumExpiry)}
+                      </p>
+                      <span
+                        className={`inline-block px-2 py-1 rounded-full text-xs font-medium mt-1 ${
+                          isPremiumActive()
+                            ? "bg-green-100 text-green-800 dark:bg-green-900/50 dark:text-green-300"
+                            : "bg-red-100 text-red-800 dark:bg-red-900/50 dark:text-red-300"
+                        }`}
+                      >
+                        {isPremiumActive() ? "Active" : "Expired"}
+                      </span>
+                    </div>
+                  )}
+                </div>
+              </motion.div>
+            )}
+
+            {/* Action Buttons */}
+            <div className="flex flex-col sm:flex-row gap-4 mt-8 pt-6 border-t border-slate-200 dark:border-gray-700">
+              <motion.button
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
+                onClick={() => navigate("/update-profile")}
+                className={`flex-1 ${currentTheme.button.primary} px-6 py-3 rounded-xl font-medium flex items-center justify-center gap-2 transition-all duration-200 shadow-lg hover:shadow-xl`}
+              >
+                <FiEdit2 className="w-5 h-5" />
+                Edit Profile
+              </motion.button>
+
+              <motion.button
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
+                onClick={fetchUserDetails}
+                className={`flex-1 ${currentTheme.button.secondary} px-6 py-3 rounded-xl font-medium flex items-center justify-center gap-2 transition-all duration-200`}
+              >
+                <FiRefreshCw className="w-5 h-5" />
+                Refresh Data
+              </motion.button>
+            </div>
           </div>
+        </motion.div>
+
+        {/* Stats Cards */}
+        <div className="grid gap-6 md:grid-cols-3">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.2 }}
+            className={`${currentTheme.cardBg} p-6 rounded-2xl shadow-lg border ${currentTheme.border}`}
+          >
+            <div className="flex items-center gap-3">
+              <div
+                className={`w-12 h-12 ${
+                  theme === "dark" ? "bg-blue-900/30" : "bg-blue-100"
+                } rounded-xl flex items-center justify-center`}
+              >
+                <FiUser
+                  className={`w-6 h-6 ${
+                    theme === "dark" ? "text-blue-400" : "text-blue-600"
+                  }`}
+                />
+              </div>
+              <div>
+                <p className={`text-sm ${currentTheme.mutedText}`}>
+                  Account Type
+                </p>
+                <p className={`font-semibold ${currentTheme.text} capitalize`}>
+                  {userDetails?.role}
+                </p>
+              </div>
+            </div>
+          </motion.div>
+
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.3 }}
+            className={`${currentTheme.cardBg} p-6 rounded-2xl shadow-lg border ${currentTheme.border}`}
+          >
+            <div className="flex items-center gap-3">
+              <div
+                className={`w-12 h-12 ${
+                  theme === "dark" ? "bg-green-900/30" : "bg-green-100"
+                } rounded-xl flex items-center justify-center`}
+              >
+                <FiClock
+                  className={`w-6 h-6 ${
+                    theme === "dark" ? "text-green-400" : "text-green-600"
+                  }`}
+                />
+              </div>
+              <div>
+                <p className={`text-sm ${currentTheme.mutedText}`}>
+                  Member For
+                </p>
+                <p className={`font-semibold ${currentTheme.text}`}>
+                  {userDetails?.createdAt
+                    ? Math.floor(
+                        (new Date() - new Date(userDetails.createdAt)) /
+                          (1000 * 60 * 60 * 24)
+                      )
+                    : 0}{" "}
+                  days
+                </p>
+              </div>
+            </div>
+          </motion.div>
+
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.4 }}
+            className={`${currentTheme.cardBg} p-6 rounded-2xl shadow-lg border ${currentTheme.border}`}
+          >
+            <div className="flex items-center gap-3">
+              <div
+                className={`w-12 h-12 ${
+                  theme === "dark" ? roleConfig.darkBgColor : roleConfig.bgColor
+                } rounded-xl flex items-center justify-center`}
+              >
+                <RoleIcon
+                  className={`w-6 h-6 ${
+                    theme === "dark"
+                      ? roleConfig.darkTextColor
+                      : roleConfig.textColor
+                  }`}
+                />
+              </div>
+              <div>
+                <p className={`text-sm ${currentTheme.mutedText}`}>Status</p>
+                <p className={`font-semibold ${currentTheme.text}`}>
+                  {userDetails?.role === "premium" && isPremiumActive()
+                    ? "Premium Active"
+                    : "Standard"}
+                </p>
+              </div>
+            </div>
+          </motion.div>
         </div>
-      </motion.div>
+      </div>
     </div>
   );
 };
