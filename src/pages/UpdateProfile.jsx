@@ -175,7 +175,7 @@ const UpdateProfile = () => {
         updateData.adminFeatures = adminFeatures;
       }
 
-      const response = await axiosInstance.put("/users/update", updateData);
+      const response = await axiosInstance.patch("/users/update", updateData);
 
       if (response.data) {
         await updateUserProfile(data.name, data.image || "");
