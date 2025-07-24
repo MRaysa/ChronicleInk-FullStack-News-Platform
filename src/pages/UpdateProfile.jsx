@@ -9,6 +9,7 @@ import { toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import axios from "axios";
 import axiosInstance from "../utils/axiosInstance";
+import { useQueryClient } from "@tanstack/react-query";
 import {
   FaUserEdit,
   FaCheck,
@@ -161,6 +162,8 @@ const UpdateProfile = () => {
     }
   };
 
+  const queryClient = useQueryClient();
+
   const onSubmit = async (data) => {
     try {
       setIsLoading(true);
@@ -180,6 +183,8 @@ const UpdateProfile = () => {
       if (response.data) {
         await updateUserProfile(data.name, data.image || "");
         await fetchUserDetails();
+
+        queryClient.invalidateQueries({ queryKey: ["userDetails"] });
 
         toast.success("Profile updated successfully!");
         setHasChanges(false);
@@ -255,7 +260,7 @@ const UpdateProfile = () => {
         <motion.div
           animate={{ rotate: 360 }}
           transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
-          className="w-8 h-8 border-3 border-blue-500 border-t-transparent rounded-full"
+          className="w-8 h-8 rounded-full border-blue-500 border-3 border-t-transparent"
         />
       </div>
     );
@@ -303,12 +308,12 @@ const UpdateProfile = () => {
 
   return (
     <div className={`min-h-screen ${currentTheme.bg} p-4 sm:p-6 lg:p-8`}>
-      <div className="max-w-2xl mx-auto">
+      <div className="mx-auto max-w-2xl">
         {/* Header */}
         <motion.div
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="flex items-center gap-4 mb-8"
+          className="flex gap-4 items-center mb-8"
         >
           <motion.button
             whileHover={{ scale: 1.05 }}
@@ -348,9 +353,9 @@ const UpdateProfile = () => {
           >
             <div className="absolute inset-0 bg-black/10"></div>
             <div className="relative z-10 text-center text-white">
-              <RoleIcon className="w-8 h-8 mx-auto mb-2" />
+              <RoleIcon className="mx-auto mb-2 w-8 h-8" />
               <h2 className="text-xl font-semibold">{roleConfig.label}</h2>
-              <p className="text-white/80 text-sm">
+              <p className="text-sm text-white/80">
                 Update your profile information
               </p>
             </div>
@@ -360,13 +365,13 @@ const UpdateProfile = () => {
           <form onSubmit={handleSubmit(onSubmit)} className="p-8 space-y-8">
             {/* Profile Image Section */}
             <div className="text-center">
-              <div className="relative inline-block group">
-                <div className="w-32 h-32 rounded-full overflow-hidden border-4 border-slate-200 dark:border-gray-700 shadow-lg mx-auto relative">
+              <div className="inline-block relative group">
+                <div className="overflow-hidden relative mx-auto w-32 h-32 rounded-full border-4 shadow-lg border-slate-200 dark:border-gray-700">
                   {previewImage ? (
                     <img
                       src={previewImage}
                       alt="Profile preview"
-                      className="w-full h-full object-cover"
+                      className="object-cover w-full h-full"
                       onError={(e) => {
                         e.target.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(
                           watchedName || user?.name || "User"
@@ -374,20 +379,20 @@ const UpdateProfile = () => {
                       }}
                     />
                   ) : (
-                    <div className="w-full h-full bg-gradient-to-br from-slate-200 to-slate-300 dark:from-gray-600 dark:to-gray-700 flex items-center justify-center">
+                    <div className="flex justify-center items-center w-full h-full bg-gradient-to-br from-slate-200 to-slate-300 dark:from-gray-600 dark:to-gray-700">
                       <FaUserCircle className="w-16 h-16 text-slate-400 dark:text-gray-500" />
                     </div>
                   )}
 
                   {imageUploading && (
-                    <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
+                    <div className="flex absolute inset-0 justify-center items-center bg-black/50">
                       <FaSpinner className="w-6 h-6 text-white animate-spin" />
                     </div>
                   )}
                 </div>
 
                 {/* Image Upload Buttons */}
-                <div className="flex justify-center gap-2 mt-4">
+                <div className="flex gap-2 justify-center mt-4">
                   <motion.button
                     type="button"
                     whileHover={{ scale: 1.05 }}
@@ -465,7 +470,7 @@ const UpdateProfile = () => {
                   <motion.p
                     initial={{ opacity: 0, y: -10 }}
                     animate={{ opacity: 1, y: 0 }}
-                    className="text-red-500 text-sm mt-2 flex items-center gap-1"
+                    className="flex gap-1 items-center mt-2 text-sm text-red-500"
                   >
                     <FaTimes className="w-3 h-3" />
                     {errors.name.message}
@@ -498,7 +503,7 @@ const UpdateProfile = () => {
                 <div
                   className={`p-6 rounded-xl border ${currentTheme.border} ${currentTheme.adminPanel}`}
                 >
-                  <div className="flex items-center gap-3 mb-4">
+                  <div className="flex gap-3 items-center mb-4">
                     <FaUsersCog className="w-6 h-6 text-purple-600 dark:text-purple-400" />
                     <h3
                       className={`text-lg font-semibold ${currentTheme.text}`}
@@ -585,9 +590,9 @@ const UpdateProfile = () => {
                   initial={{ opacity: 0, scale: 0.95 }}
                   animate={{ opacity: 1, scale: 1 }}
                   exit={{ opacity: 0, scale: 0.95 }}
-                  className="p-4 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-xl"
+                  className="p-4 bg-blue-50 rounded-xl border border-blue-200 dark:bg-blue-900/20 dark:border-blue-800"
                 >
-                  <div className="flex items-center gap-2 text-blue-700 dark:text-blue-300">
+                  <div className="flex gap-2 items-center text-blue-700 dark:text-blue-300">
                     <div className="w-2 h-2 bg-blue-500 rounded-full animate-pulse"></div>
                     <span className="text-sm font-medium">
                       You have unsaved changes
@@ -598,7 +603,7 @@ const UpdateProfile = () => {
             </AnimatePresence>
 
             {/* Action Buttons */}
-            <div className="flex flex-col sm:flex-row gap-4 pt-6 border-t border-slate-200 dark:border-gray-700">
+            <div className="flex flex-col gap-4 pt-6 border-t sm:flex-row border-slate-200 dark:border-gray-700">
               <motion.button
                 type="submit"
                 whileHover={{ scale: 1.02 }}
@@ -641,7 +646,7 @@ const UpdateProfile = () => {
             </div>
 
             {/* Cancel Button */}
-            <div className="text-center pt-4">
+            <div className="pt-4 text-center">
               <motion.button
                 type="button"
                 whileHover={{ scale: 1.02 }}
@@ -663,8 +668,8 @@ const UpdateProfile = () => {
           transition={{ delay: 0.2 }}
           className={`mt-6 ${currentTheme.cardBg} rounded-2xl shadow-lg border ${currentTheme.border} p-6`}
         >
-          <div className="flex items-start gap-4">
-            <div className="w-10 h-10 bg-blue-100 dark:bg-blue-900/20 rounded-xl flex items-center justify-center flex-shrink-0">
+          <div className="flex gap-4 items-start">
+            <div className="flex flex-shrink-0 justify-center items-center w-10 h-10 bg-blue-100 rounded-xl dark:bg-blue-900/20">
               <FiImage className="w-5 h-5 text-blue-600 dark:text-blue-400" />
             </div>
             <div>
@@ -689,28 +694,28 @@ const UpdateProfile = () => {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.3 }}
-            className="mt-6 bg-gradient-to-r from-yellow-50 to-orange-50 dark:from-yellow-900/20 dark:to-orange-900/20 rounded-2xl shadow-lg border border-yellow-200 dark:border-yellow-800 p-6"
+            className="p-6 mt-6 bg-gradient-to-r from-yellow-50 to-orange-50 rounded-2xl border border-yellow-200 shadow-lg dark:from-yellow-900/20 dark:to-orange-900/20 dark:border-yellow-800"
           >
-            <div className="flex items-center gap-3 mb-4">
+            <div className="flex gap-3 items-center mb-4">
               <HiSparkles className="w-6 h-6 text-yellow-600 dark:text-yellow-400" />
               <h3 className="font-semibold text-yellow-800 dark:text-yellow-200">
                 Premium Features
               </h3>
             </div>
-            <div className="grid gap-3 sm:grid-cols-2 text-sm text-yellow-700 dark:text-yellow-300">
-              <div className="flex items-center gap-2">
+            <div className="grid gap-3 text-sm text-yellow-700 sm:grid-cols-2 dark:text-yellow-300">
+              <div className="flex gap-2 items-center">
                 <FaCheck className="w-4 h-4 text-yellow-600 dark:text-yellow-400" />
                 Higher quality image uploads
               </div>
-              <div className="flex items-center gap-2">
+              <div className="flex gap-2 items-center">
                 <FaCheck className="w-4 h-4 text-yellow-600 dark:text-yellow-400" />
                 Unlimited profile updates
               </div>
-              <div className="flex items-center gap-2">
+              <div className="flex gap-2 items-center">
                 <FaCheck className="w-4 h-4 text-yellow-600 dark:text-yellow-400" />
                 Priority support
               </div>
-              <div className="flex items-center gap-2">
+              <div className="flex gap-2 items-center">
                 <FaCheck className="w-4 h-4 text-yellow-600 dark:text-yellow-400" />
                 Advanced customization
               </div>
@@ -723,28 +728,28 @@ const UpdateProfile = () => {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.4 }}
-            className="mt-6 bg-gradient-to-r from-purple-50 to-pink-50 dark:from-purple-900/20 dark:to-pink-900/20 rounded-2xl shadow-lg border border-purple-200 dark:border-purple-800 p-6"
+            className="p-6 mt-6 bg-gradient-to-r from-purple-50 to-pink-50 rounded-2xl border border-purple-200 shadow-lg dark:from-purple-900/20 dark:to-pink-900/20 dark:border-purple-800"
           >
-            <div className="flex items-center gap-3 mb-4">
+            <div className="flex gap-3 items-center mb-4">
               <FiShield className="w-6 h-6 text-purple-600 dark:text-purple-400" />
               <h3 className="font-semibold text-purple-800 dark:text-purple-200">
                 Administrator Privileges
               </h3>
             </div>
-            <div className="grid gap-3 sm:grid-cols-2 text-sm text-purple-700 dark:text-purple-300">
-              <div className="flex items-center gap-2">
+            <div className="grid gap-3 text-sm text-purple-700 sm:grid-cols-2 dark:text-purple-300">
+              <div className="flex gap-2 items-center">
                 <FaCheck className="w-4 h-4 text-purple-600 dark:text-purple-400" />
                 Full system access
               </div>
-              <div className="flex items-center gap-2">
+              <div className="flex gap-2 items-center">
                 <FaCheck className="w-4 h-4 text-purple-600 dark:text-purple-400" />
                 User management
               </div>
-              <div className="flex items-center gap-2">
+              <div className="flex gap-2 items-center">
                 <FaCheck className="w-4 h-4 text-purple-600 dark:text-purple-400" />
                 Content moderation
               </div>
-              <div className="flex items-center gap-2">
+              <div className="flex gap-2 items-center">
                 <FaCheck className="w-4 h-4 text-purple-600 dark:text-purple-400" />
                 System configuration
               </div>

@@ -3,7 +3,7 @@ import axios from "axios";
 
 const axiosInstance = axios.create({
   baseURL:
-    import.meta.env.VITE_API_BASE_URL ||
+    import.meta.env.VITE_BACKEND_URL ||
     "https://chronicle-ink-server.vercel.app/web/api",
 });
 

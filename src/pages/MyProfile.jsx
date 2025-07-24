@@ -1,8 +1,9 @@
-import React, { useState, useEffect } from "react";
+import React, { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import useAuth from "../hook/useAuth";
 import { useTheme } from "../context/ThemeContext";
 import { motion } from "framer-motion";
+import { useQuery } from "@tanstack/react-query";
 import {
   FiMail,
   FiCalendar,
@@ -21,25 +22,21 @@ const MyProfile = () => {
   const { user } = useAuth();
   const { theme } = useTheme();
   const navigate = useNavigate();
-  const [userDetails, setUserDetails] = useState(null);
-  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetchUserDetails();
+    window.scrollTo(0, 0);
   }, []);
 
-  const fetchUserDetails = async () => {
-    try {
-      setLoading(true);
+  const { data: userDetails, loading } = useQuery({
+    queryKey: ["userDetails"],
+    queryFn: async () => {
       const { data } = await axiosInstance.get("/users/user-data");
-      setUserDetails(data.user);
-    } catch (error) {
-      console.error("Error fetching user details:", error);
+      return data.user;
+    },
+    onError: () => {
       toast.error("Failed to load profile data");
-    } finally {
-      setLoading(false);
-    }
-  };
+    },
+  });
 
   const formatDate = (dateString) => {
     if (!dateString) return "Not available";
@@ -111,7 +108,7 @@ const MyProfile = () => {
         <motion.div
           animate={{ rotate: 360 }}
           transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
-          className="w-8 h-8 border-3 border-blue-500 border-t-transparent rounded-full"
+          className="w-8 h-8 rounded-full border-blue-500 border-3 border-t-transparent"
         />
       </div>
     );
@@ -158,12 +155,12 @@ const MyProfile = () => {
 
   return (
     <div className={`min-h-screen ${currentTheme.bg} p-4 sm:p-6 lg:p-8`}>
-      <div className="max-w-4xl mx-auto">
+      <div className="mx-auto max-w-4xl">
         {/* Header */}
         <motion.div
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="text-center mb-8"
+          className="mb-8 text-center"
         >
           <h1
             className={`text-4xl font-bold bg-gradient-to-r ${
@@ -197,19 +194,17 @@ const MyProfile = () => {
             } p-8 relative overflow-hidden`}
           >
             <div className="absolute inset-0 bg-black/10"></div>
-            <div className="relative z-10 flex flex-col sm:flex-row items-center gap-6">
+            <div className="flex relative z-10 flex-col gap-6 items-center sm:flex-row">
               {/* Avatar */}
               <motion.div
                 whileHover={{ scale: 1.05 }}
                 className="relative group"
               >
-                <div className="w-24 h-24 sm:w-32 sm:h-32 rounded-full overflow-hidden border-4 border-white dark:border-gray-800 shadow-xl">
+                <div className="overflow-hidden w-24 h-24 rounded-full border-4 border-white shadow-xl sm:w-32 sm:h-32 dark:border-gray-800">
                   <img
-                    src={
-                      user?.image || userDetails?.image || "/default-avatar.png"
-                    }
+                    src={userDetails?.image}
                     alt={user?.name || "User"}
-                    className="w-full h-full object-cover"
+                    className="object-cover w-full h-full"
                     onError={(e) => {
                       e.target.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(
                         user?.name || "User"
@@ -218,24 +213,24 @@ const MyProfile = () => {
                   />
                 </div>
                 {userDetails?.role === "premium" && isPremiumActive() && (
-                  <div className="absolute -top-2 -right-2 bg-yellow-400 rounded-full p-2 shadow-lg">
+                  <div className="absolute -top-2 -right-2 p-2 bg-yellow-400 rounded-full shadow-lg">
                     <HiSparkles className="w-5 h-5 text-yellow-800" />
                   </div>
                 )}
               </motion.div>
 
               {/* User Info */}
-              <div className="text-center sm:text-left text-white">
-                <h2 className="text-2xl sm:text-3xl font-bold mb-2">
-                  {user?.name || userDetails?.name}
+              <div className="text-center text-white sm:text-left">
+                <h2 className="mb-2 text-2xl font-bold sm:text-3xl">
+                  {userDetails?.name}
                 </h2>
-                <div className="flex items-center justify-center sm:justify-start gap-2 mb-3">
+                <div className="flex gap-2 justify-center items-center mb-3 sm:justify-start">
                   <RoleIcon className="w-5 h-5" />
-                  <span className="text-white/90 font-medium">
+                  <span className="font-medium text-white/90">
                     {roleConfig.label}
                   </span>
                 </div>
-                <p className="text-white/80 text-sm sm:text-base">
+                <p className="text-sm text-white/80 sm:text-base">
                   Member since{" "}
                   {formatDate(userDetails?.createdAt).split(" at")[0]}
                 </p>
@@ -283,7 +278,7 @@ const MyProfile = () => {
                         Full Name
                       </p>
                       <p className={`font-medium ${currentTheme.text}`}>
-                        {user?.name || userDetails?.name}
+                        {userDetails?.name}
                       </p>
                     </div>
                   </div>
@@ -351,7 +346,7 @@ const MyProfile = () => {
                     : "bg-gradient-to-r from-yellow-50 to-orange-50 border-yellow-200"
                 }`}
               >
-                <div className="flex items-center gap-3 mb-4">
+                <div className="flex gap-3 items-center mb-4">
                   <RiVipCrownLine
                     className={`w-6 h-6 ${
                       theme === "dark" ? "text-yellow-400" : "text-yellow-600"
@@ -407,8 +402,8 @@ const MyProfile = () => {
                       <span
                         className={`inline-block px-2 py-1 rounded-full text-xs font-medium mt-1 ${
                           isPremiumActive()
-                            ? "bg-green-100 text-green-800 dark:bg-green-900/50 dark:text-green-300"
-                            : "bg-red-100 text-red-800 dark:bg-red-900/50 dark:text-red-300"
+                            ? "text-green-800 bg-green-100 dark:bg-green-900/50 dark:text-green-300"
+                            : "text-red-800 bg-red-100 dark:bg-red-900/50 dark:text-red-300"
                         }`}
                       >
                         {isPremiumActive() ? "Active" : "Expired"}
@@ -420,7 +415,7 @@ const MyProfile = () => {
             )}
 
             {/* Action Buttons */}
-            <div className="flex flex-col sm:flex-row gap-4 mt-8 pt-6 border-t border-slate-200 dark:border-gray-700">
+            <div className="flex flex-col gap-4 pt-6 mt-8 border-t sm:flex-row border-slate-200 dark:border-gray-700">
               <motion.button
                 whileHover={{ scale: 1.02 }}
                 whileTap={{ scale: 0.98 }}
@@ -429,16 +424,6 @@ const MyProfile = () => {
               >
                 <FiEdit2 className="w-5 h-5" />
                 Edit Profile
-              </motion.button>
-
-              <motion.button
-                whileHover={{ scale: 1.02 }}
-                whileTap={{ scale: 0.98 }}
-                onClick={fetchUserDetails}
-                className={`flex-1 ${currentTheme.button.secondary} px-6 py-3 rounded-xl font-medium flex items-center justify-center gap-2 transition-all duration-200`}
-              >
-                <FiRefreshCw className="w-5 h-5" />
-                Refresh Data
               </motion.button>
             </div>
           </div>
@@ -452,7 +437,7 @@ const MyProfile = () => {
             transition={{ delay: 0.2 }}
             className={`${currentTheme.cardBg} p-6 rounded-2xl shadow-lg border ${currentTheme.border}`}
           >
-            <div className="flex items-center gap-3">
+            <div className="flex gap-3 items-center">
               <div
                 className={`w-12 h-12 ${
                   theme === "dark" ? "bg-blue-900/30" : "bg-blue-100"
@@ -481,7 +466,7 @@ const MyProfile = () => {
             transition={{ delay: 0.3 }}
             className={`${currentTheme.cardBg} p-6 rounded-2xl shadow-lg border ${currentTheme.border}`}
           >
-            <div className="flex items-center gap-3">
+            <div className="flex gap-3 items-center">
               <div
                 className={`w-12 h-12 ${
                   theme === "dark" ? "bg-green-900/30" : "bg-green-100"
@@ -516,7 +501,7 @@ const MyProfile = () => {
             transition={{ delay: 0.4 }}
             className={`${currentTheme.cardBg} p-6 rounded-2xl shadow-lg border ${currentTheme.border}`}
           >
-            <div className="flex items-center gap-3">
+            <div className="flex gap-3 items-center">
               <div
                 className={`w-12 h-12 ${
                   theme === "dark" ? roleConfig.darkBgColor : roleConfig.bgColor
