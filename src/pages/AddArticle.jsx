@@ -150,8 +150,10 @@ export default function AddArticleForm() {
       reset();
       setPreviewImage(null);
     } catch (err) {
-      console.error(err);
-      toast.error("Submission failed. Try again.");
+      console.error(err.response.data.message);
+      let errorMessage = err.response.data.message || "Something went wrong";
+
+      toast.error(errorMessage);
     } finally {
       setLoading(false);
     }
