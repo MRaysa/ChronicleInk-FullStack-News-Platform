@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useTheme } from "../context/ThemeContext";
 import {
@@ -36,6 +36,11 @@ const Subscription = () => {
   const [price, setPrice] = useState(0);
   const [hoveredPlan, setHoveredPlan] = useState(null);
   const [planDuration, setPlanDuration] = useState("monthly");
+
+  // scroll to top
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, []);
 
   const plans = {
     monthly: [
