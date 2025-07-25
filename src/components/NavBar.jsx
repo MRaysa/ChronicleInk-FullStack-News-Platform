@@ -266,13 +266,7 @@ const Navbar = () => {
               >
                 My Profile
               </DropdownItem>
-              <DropdownItem
-                as={Link}
-                to="/settings"
-                className={`${textColor} hover:!bg-blue-50 dark:hover:!bg-gray-700`}
-              >
-                Settings
-              </DropdownItem>
+
               <DropdownItem
                 onClick={userSignOut}
                 className={`${textColor} hover:!bg-blue-50 dark:hover:!bg-gray-700`}
