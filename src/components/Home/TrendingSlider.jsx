@@ -7,6 +7,7 @@ import axiosInstance from "../../utils/axiosInstance";
 import Spinner from "../Spinner";
 import { useTheme } from "../../context/ThemeContext";
 import { useState, useRef } from "react";
+import { Typewriter } from "react-simple-typewriter";
 
 const TrendingSlider = () => {
   const { theme } = useTheme();
@@ -144,7 +145,15 @@ const TrendingSlider = () => {
                     : "from-slate-900 via-slate-700 to-slate-500"
                 } bg-clip-text text-transparent`}
               >
-                TRENDING
+                <Typewriter
+                  words={["TRENDING"]}
+                  loop={0} // 0 means infinite
+                  cursor
+                  cursorStyle="_"
+                  typeSpeed={100}
+                  deleteSpeed={50}
+                  delaySpeed={1000}
+                />
               </h2>
               <p
                 className={`text-lg font-medium mt-1 ${
