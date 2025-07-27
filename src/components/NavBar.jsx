@@ -359,7 +359,7 @@ const Navbar = () => {
           >
             <div className="px-4 py-3 flex flex-col gap-4">
               {/* Search in Mobile */}
-              <form onSubmit={handleSearch} className="relative">
+              {/* <form onSubmit={handleSearch} className="relative">
                 <input
                   type="text"
                   placeholder="Search articles..."
@@ -372,7 +372,7 @@ const Navbar = () => {
                   }`}
                 />
                 <FaSearch className="absolute left-3 top-3 text-gray-400" />
-              </form>
+              </form> */}
 
               {/* Theme Toggle in Mobile */}
               <motion.button
